@@ -128,7 +128,7 @@ function viewSubmission(submissionId) {
     showLoadingToast('Loading submission details...');
     
     // Navigate to submission detail page
-    window.location.href = `/assignments/submissions/${submissionId}/view`;
+    window.location.href = `/instructor/assignments/submissions/${submissionId}/view`;
 }
 
 /**
@@ -210,7 +210,7 @@ function handleGradeSubmission(e) {
     submitButton.disabled = true;
     
     // Submit grade
-    fetch(`/assignments/submissions/${currentSubmissionId}/grade`, {
+    fetch(`/instructor/assignments/submissions/${currentSubmissionId}/grade`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ function downloadSubmission(submissionId) {
     showLoadingToast('Preparing download...');
     
     // Create download link
-    const downloadUrl = `/assignments/submissions/${submissionId}/download`;
+    const downloadUrl = `/instructor/assignments/submissions/${submissionId}/download`;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = '';

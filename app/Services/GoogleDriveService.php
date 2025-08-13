@@ -155,4 +155,112 @@ class GoogleDriveService
             return null;
         }
     }
+
+    /**
+     * Create or get assignment folder inside submissions folder
+     */
+    public function createAssignmentFolder(string $assignmentTitle)
+    {
+        try {
+            // Assignment submissions folder ID
+            $assignmentsFolderId = '1Ru7kmdp87ljBEHvXKgjFZje_soOHm4za';
+            
+            // Clean assignment title for folder name
+            $folderName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $assignmentTitle);
+            $folderName = trim($folderName);
+            
+            // Check if assignment folder already exists
+            $existingFolder = $this->findFolderByName($folderName, $assignmentsFolderId);
+            
+            if ($existingFolder) {
+                return $existingFolder['id'];
+            }
+            
+            // Create new assignment folder
+            $folderMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $folderName,
+                'parents' => [$assignmentsFolderId],
+                'mimeType' => 'application/vnd.google-apps.folder'
+            ]);
+
+            $folder = $this->service->files->create($folderMetadata);
+
+            Log::info('Assignment folder created successfully', [
+                'folder_id' => $folder->id,
+                'folder_name' => $folderName,
+                'assignment_title' => $assignmentTitle
+            ]);
+
+            return $folder->id;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create assignment folder: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Upload assignment submission file with original name
+     */
+    public function uploadAssignmentSubmission(UploadedFile $file, string $studentName, string $assignmentTitle, string $existingFileId = null)
+    {
+        try {
+            // Get or create assignment-specific folder
+            $assignmentFolderId = $this->createAssignmentFolder($assignmentTitle);
+            if (!$assignmentFolderId) {
+                throw new \Exception('Could not create assignment folder');
+            }
+
+            // Use original file name with student name prefix
+            $originalName = $file->getClientOriginalName();
+            $fileName = $studentName . ' - ' . $originalName;
+
+            // If there's an existing file, delete it first (for resubmission)
+            if ($existingFileId) {
+                $this->deleteFile($existingFileId);
+                Log::info('Deleted existing assignment submission', ['file_id' => $existingFileId]);
+            }
+
+            // Create file metadata
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $fileName,
+                'parents' => [$assignmentFolderId]
+            ]);
+
+            // Upload file
+            $content = file_get_contents($file->getRealPath());
+            $driveFile = $this->service->files->create($fileMetadata, [
+                'data' => $content,
+                'mimeType' => $file->getMimeType(),
+                'uploadType' => 'multipart'
+            ]);
+
+            // Make file accessible to instructor
+            $permission = new \Google\Service\Drive\Permission([
+                'role' => 'reader',
+                'type' => 'anyone'
+            ]);
+            
+            $this->service->permissions->create($driveFile->id, $permission);
+
+            Log::info('Assignment submission uploaded to Google Drive', [
+                'file_id' => $driveFile->id,
+                'file_name' => $fileName,
+                'original_name' => $originalName,
+                'student' => $studentName,
+                'assignment' => $assignmentTitle,
+                'folder_id' => $assignmentFolderId
+            ]);
+
+            return [
+                'id' => $driveFile->id,
+                'url' => "https://drive.google.com/file/d/{$driveFile->id}/view",
+                'file_name' => $fileName
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Assignment submission upload failed: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

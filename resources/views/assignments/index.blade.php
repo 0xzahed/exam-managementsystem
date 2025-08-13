@@ -18,7 +18,7 @@
                 </p>
             </div>
             @if(auth()->user()->role === 'instructor')
-            <a href="{{ route('assignments.create') }}"
+            <a href="{{ route('instructor.assignments.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
                 <i class="fas fa-plus"></i>
                 Create Assignment
@@ -226,17 +226,17 @@
             <div class="p-4 sm:p-6">
                 @if(auth()->user()->role === 'instructor')
                 <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                    <a href="{{ route('assignments.show', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.show', $assignment) }}"
                         class="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm">
                         <i class="fas fa-eye text-xs"></i>
                         View
                     </a>
-                    <a href="{{ route('assignments.edit', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.edit', $assignment) }}"
                         class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-center py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm">
                         <i class="fas fa-edit text-xs"></i>
                         Edit
                     </a>
-                    <form action="{{ route('assignments.destroy', $assignment) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this assignment?')">
+                    <form action="{{ route('instructor.assignments.destroy', $assignment) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this assignment?')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full bg-red-100 hover:bg-red-200 text-red-700 text-center py-2 sm:py-3 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm">
@@ -265,60 +265,57 @@
                     </a>
                     @endif
 
-                    <a href="{{ route('assignments.show', $assignment) }}"
-                        class="block bg-gray-100 hover:bg-gray-200 text-gray-700 text-center py-2 px-3 rounded-lg font-medium transition-all duration-200">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        View Details
-                    </a>
                 </div>
-                @endif
 
-                <!-- Due Date Indicator -->
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="text-center text-sm">
-                        @if($assignment->isOverdue() && $assignment->status === 'published')
-                        <span class="text-red-600 font-medium">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            Overdue by {{ abs($assignment->days_until_due) }} day{{ abs($assignment->days_until_due) !== 1 ? 's' : '' }}
+            </div>
+            @endif
+
+            <!-- Due Date Indicator -->
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <div class="text-center text-sm">
+                    @if($assignment->isOverdue() && $assignment->status === 'published')
+                    <span class="text-red-600 font-medium">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Overdue by {{ abs($assignment->days_until_due) }} day{{ abs($assignment->days_until_due) !== 1 ? 's' : '' }}
+                    </span>
+                    @elseif($assignment->days_until_due <= 1 && $assignment->days_until_due >= 0)
+                        <span class="text-orange-600 font-medium">
+                            <i class="fas fa-clock mr-1"></i>
+                            Due {{ $assignment->days_until_due === 0 ? 'today' : 'tomorrow' }}
                         </span>
-                        @elseif($assignment->days_until_due <= 1 && $assignment->days_until_due >= 0)
-                            <span class="text-orange-600 font-medium">
-                                <i class="fas fa-clock mr-1"></i>
-                                Due {{ $assignment->days_until_due === 0 ? 'today' : 'tomorrow' }}
-                            </span>
-                            @else
-                            <span class="text-gray-600">
-                                <i class="fas fa-calendar mr-1"></i>
-                                {{ $assignment->days_until_due }} day{{ $assignment->days_until_due !== 1 ? 's' : '' }} remaining
-                            </span>
-                            @endif
-                    </div>
+                        @else
+                        <span class="text-gray-600">
+                            <i class="fas fa-calendar mr-1"></i>
+                            {{ $assignment->days_until_due }} day{{ $assignment->days_until_due !== 1 ? 's' : '' }} remaining
+                        </span>
+                        @endif
                 </div>
             </div>
         </div>
-        @empty
-        <div class="col-span-full text-center py-12">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                <i class="fas fa-tasks text-2xl text-gray-400"></i>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No assignments found</h3>
-            <p class="text-gray-500 mb-4">
-                @if(auth()->user()->role === 'instructor')
-                Create your first assignment to get started
-                @else
-                No assignments have been posted yet
-                @endif
-            </p>
-            @if(auth()->user()->role === 'instructor')
-            <a href="{{ route('assignments.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-                <i class="fas fa-plus mr-2"></i>
-                Create Assignment
-            </a>
-            @endif
-        </div>
-        @endforelse
     </div>
+    @empty
+    <div class="col-span-full text-center py-12">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <i class="fas fa-tasks text-2xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No assignments found</h3>
+        <p class="text-gray-500 mb-4">
+            @if(auth()->user()->role === 'instructor')
+            Create your first assignment to get started
+            @else
+            No assignments have been posted yet
+            @endif
+        </p>
+        @if(auth()->user()->role === 'instructor')
+        <a href="{{ route('instructor.assignments.create') }}"
+            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Create Assignment
+        </a>
+        @endif
+    </div>
+    @endforelse
+</div>
 </div>
 
 <style>

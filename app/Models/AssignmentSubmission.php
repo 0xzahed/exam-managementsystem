@@ -79,4 +79,21 @@ class AssignmentSubmission extends Model
         
         return round(($this->grade / $this->assignment->marks) * 100, 1);
     }
+    
+    /**
+     * Get the attempt number for this submission
+     */
+    public function getAttemptNumberAttribute(): int
+    {
+        return $this->attributes['attempt_number'] ?? 1;
+    }
+    
+    /**
+     * Check if this is the final attempt
+     */
+    public function isFinalAttempt(): bool
+    {
+        $maxAttempts = $this->assignment->max_attempts ?? 3;
+        return $this->attempt_number >= $maxAttempts;
+    }
 }

@@ -236,5 +236,5 @@ document.getElementById('enrollNewCourseBtn').addEventListener('click', function
  */
 function showEnrollModal() {
     // Redirect to enrollment page instead of API call
-    window.location.href = '/courses/enroll';
+    window.location.href = '/student/enroll';
 }

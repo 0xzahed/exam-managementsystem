@@ -11,9 +11,16 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Assignment;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\GoogleDriveService;
 
 class AssignmentController extends Controller
 {
+    protected $googleDriveService;
+
+    public function __construct(GoogleDriveService $googleDriveService)
+    {
+        $this->googleDriveService = $googleDriveService;
+    }
     /**
      * Display a listing of assignments.
      */
@@ -202,7 +209,7 @@ class AssignmentController extends Controller
             // Check if student is enrolled in the course
             $isEnrolled = DB::table('course_enrollments')
                 ->where('course_id', $assignment->course_id)
-                ->where('student_id', $user->id)
+                ->where('user_id', $user->id)
                 ->exists();
                 
             if (!$isEnrolled || $assignment->status !== 'published') {
@@ -210,7 +217,16 @@ class AssignmentController extends Controller
             }
         }
         
-        return view('assignments.show', compact('assignment'));
+        // Get user submission if student
+        $userSubmission = null;
+        if ($user->role === 'student') {
+            $userSubmission = DB::table('assignment_submissions')
+                ->where('assignment_id', $assignment->id)
+                ->where('student_id', $user->id)
+                ->first();
+        }
+        
+        return view('assignments.show', compact('assignment', 'userSubmission'));
     }
 
     /**
@@ -379,7 +395,7 @@ class AssignmentController extends Controller
         try {
             // Get all students enrolled in the course
             $enrolledStudents = DB::table('course_enrollments')
-                ->join('users', 'course_enrollments.student_id', '=', 'users.id')
+                ->join('users', 'course_enrollments.user_id', '=', 'users.id')
                 ->where('course_enrollments.course_id', $assignment->course_id)
                 ->select('users.*')
                 ->get();
@@ -449,7 +465,7 @@ class AssignmentController extends Controller
         // Check if student is enrolled in the course
         $isEnrolled = DB::table('course_enrollments')
             ->where('course_id', $assignment->course_id)
-            ->where('student_id', $user->id)
+            ->where('user_id', $user->id)
             ->exists();
             
         if (!$isEnrolled) {
@@ -459,6 +475,20 @@ class AssignmentController extends Controller
         // Check if assignment is published
         if ($assignment->status !== 'published') {
             return redirect()->route('assignments.show', $assignment)->with('error', 'This assignment is not available for submission.');
+        }
+        
+        // Check attempt limits
+        $existingSubmission = DB::table('assignment_submissions')
+            ->where('assignment_id', $assignment->id)
+            ->where('student_id', $user->id)
+            ->first();
+            
+        $currentAttempts = $existingSubmission ? ($existingSubmission->attempt_number ?? 1) : 0;
+        $maxAttempts = $assignment->max_attempts ?? 3;
+        
+        if ($currentAttempts >= $maxAttempts) {
+            return redirect()->route('assignments.show', $assignment)
+                ->with('error', 'You have reached the maximum number of submission attempts (' . $maxAttempts . ') for this assignment.');
         }
         
         // Validate submission
@@ -480,68 +510,108 @@ class AssignmentController extends Controller
         DB::beginTransaction();
         
         try {
-            // Handle file uploads
+
+            // Handle Google Drive file upload
+            $googleDriveFileId = null;
+            $googleDriveUrl = null;
             $submissionFiles = [];
-            if ($request->hasFile('submission_files')) {
-                foreach ($request->file('submission_files') as $file) {
-                    $filename = time() . '_' . $user->id . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('assignments/submissions', $filename, 'public');
-                    $submissionFiles[] = [
-                        'name' => $file->getClientOriginalName(),
-                        'stored_name' => $filename,
-                        'path' => $path,
-                        'size' => $file->getSize(),
-                        'mime_type' => $file->getMimeType()
+            
+            if ($request->hasFile('submission_files') && count($request->file('submission_files')) > 0) {
+                $file = $request->file('submission_files')[0]; // Take first file only
+                
+                // Get existing file ID for replacement
+                $existingFileId = $existingSubmission ? $existingSubmission->google_drive_file_id : null;
+                
+                // Upload to Google Drive
+                $uploadResult = $this->googleDriveService->uploadAssignmentSubmission(
+                    $file,
+                    $user->name,
+                    $assignment->title,
+                    $existingFileId
+                );
+                
+                if ($uploadResult) {
+                    $googleDriveFileId = $uploadResult['id'];
+                    $googleDriveUrl = $uploadResult['url'];
+                    
+                    $submissionFiles = [
+                        [
+                            'name' => $file->getClientOriginalName(),
+                            'google_drive_id' => $googleDriveFileId,
+                            'google_drive_url' => $googleDriveUrl,
+                            'size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType()
+                        ]
                     ];
+                    
+                    Log::info('Assignment submission uploaded to Google Drive', [
+                        'student_id' => $user->id,
+                        'assignment_id' => $assignment->id,
+                        'file_id' => $googleDriveFileId,
+                        'is_resubmission' => !empty($existingFileId)
+                    ]);
+                } else {
+                    throw new \Exception('Failed to upload file to Google Drive');
                 }
             }
-            
-            // Check for existing submission
-            $existingSubmission = DB::table('assignment_submissions')
-                ->where('assignment_id', $assignment->id)
-                ->where('student_id', $user->id)
-                ->first();
                 
             if ($existingSubmission) {
-                // Update existing submission
+                // Update existing submission and increment attempt number
+                $newAttemptNumber = $currentAttempts + 1;
+                $updateData = [
+                    'content' => $validatedData['submission_text'] ?? null,
+                    'comments' => $validatedData['comments'] ?? null,
+                    'submitted_at' => now(),
+                    'attempt_number' => $newAttemptNumber,
+                    'updated_at' => now(),
+                ];
+                
+                if ($googleDriveFileId) {
+                    $updateData['google_drive_file_id'] = $googleDriveFileId;
+                    $updateData['google_drive_url'] = $googleDriveUrl;
+                    $updateData['submission_files'] = json_encode($submissionFiles);
+                }
+                
                 DB::table('assignment_submissions')
                     ->where('id', $existingSubmission->id)
-                    ->update([
-                        'content' => $validatedData['submission_text'] ?? null,
-                        'submission_files' => !empty($submissionFiles) ? json_encode($submissionFiles) : null,
-                        'comments' => $validatedData['comments'] ?? null,
-                        'submitted_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+                    ->update($updateData);
+                    
+                $message = 'Assignment resubmitted successfully! This is attempt ' . $newAttemptNumber . ' of ' . $maxAttempts . '.';
             } else {
                 // Create new submission
-                DB::table('assignment_submissions')->insert([
+                $insertData = [
                     'assignment_id' => $assignment->id,
                     'student_id' => $user->id,
                     'content' => $validatedData['submission_text'] ?? null,
-                    'submission_files' => !empty($submissionFiles) ? json_encode($submissionFiles) : null,
                     'comments' => $validatedData['comments'] ?? null,
                     'submitted_at' => now(),
+                    'attempt_number' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+                
+                if ($googleDriveFileId) {
+                    $insertData['google_drive_file_id'] = $googleDriveFileId;
+                    $insertData['google_drive_url'] = $googleDriveUrl;
+                    $insertData['submission_files'] = json_encode($submissionFiles);
+                }
+                
+                DB::table('assignment_submissions')->insert($insertData);
+                
+                $message = 'Assignment submitted successfully! This is attempt 1 of ' . $maxAttempts . '.';
             }
             
             DB::commit();
             
-            return redirect()->route('assignments.show', $assignment)->with('success', 'Assignment submitted successfully!');
+            return redirect()->route('assignments.show', $assignment)->with('success', $message);
             
         } catch (\Exception $e) {
             DB::rollback();
             
-            // Clean up uploaded files
-            if (!empty($submissionFiles)) {
-                foreach ($submissionFiles as $file) {
-                    Storage::disk('public')->delete($file['path']);
-                }
-            }
+            Log::error('Assignment submission failed: ' . $e->getMessage());
             
-            return redirect()->back()->with('error', 'Failed to submit assignment. Please try again.');
+            return redirect()->route('assignments.show', $assignment)
+                ->with('error', 'Failed to submit assignment. Please try again.');
         }
     }
 
@@ -591,6 +661,80 @@ class AssignmentController extends Controller
         }
     }
 
+    /**
+     * Reset attempts for a specific student (instructor action)
+     */
+    public function resetStudentAttempts(Request $request, $assignmentId, $studentId)
+    {
+        $assignment = Assignment::findOrFail($assignmentId);
+        $user = Auth::user();
+        
+        // Only the instructor who created the assignment can reset attempts
+        if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        
+        try {
+            $success = $assignment->resetStudentAttempts($studentId);
+            
+            if ($success) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Student attempts have been reset successfully.'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'No submission found for this student.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to reset attempts: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Increase max attempts for an assignment (instructor action)
+     */
+    public function increaseMaxAttempts(Request $request, $assignmentId)
+    {
+        $assignment = Assignment::findOrFail($assignmentId);
+        $user = Auth::user();
+        
+        // Only the instructor who created the assignment can increase attempts
+        if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        
+        $request->validate([
+            'new_max_attempts' => 'required|integer|min:1|max:10'
+        ]);
+        
+        try {
+            $success = $assignment->increaseMaxAttempts($request->new_max_attempts);
+            
+            if ($success) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Maximum attempts increased to ' . $request->new_max_attempts . '.'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'New max attempts must be greater than current value.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to increase attempts: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
     /**
      * Bulk grade multiple submissions
      */
@@ -794,5 +938,71 @@ class AssignmentController extends Controller
         }
         
         return redirect()->back()->with('error', 'Failed to create download archive');
+    }
+
+    /**
+     * View a specific assignment submission
+     */
+    public function viewSubmission($submissionId)
+    {
+        $user = Auth::user();
+        
+        // Get submission with related data
+        $submission = DB::table('assignment_submissions')
+            ->join('assignments', 'assignment_submissions.assignment_id', '=', 'assignments.id')
+            ->join('users', 'assignment_submissions.student_id', '=', 'users.id')
+            ->join('courses', 'assignments.course_id', '=', 'courses.id')
+            ->where('assignment_submissions.id', $submissionId)
+            ->select(
+                'assignment_submissions.*',
+                'assignments.title as assignment_title',
+                'assignments.marks as total_marks',
+                'assignments.instructions',
+                'assignments.due_date',
+                'assignments.course_id',
+                'users.first_name',
+                'users.last_name',
+                'users.email as student_email',
+                'courses.title as course_title'
+            )
+            ->first();
+
+        if (!$submission) {
+            abort(404, 'Submission not found');
+        }
+
+        // Check authorization - only instructor who owns the assignment can view
+        if ($user->role !== 'instructor') {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Check if instructor owns the course
+        $course = \App\Models\Course::where('id', $submission->course_id)
+                                   ->where('instructor_id', $user->id)
+                                   ->first();
+        
+        if (!$course) {
+            abort(403, 'You are not authorized to view this submission');
+        }
+
+        // Parse submission files if they exist
+        $submissionFiles = [];
+        if ($submission->submission_files) {
+            $submissionFiles = json_decode($submission->submission_files, true) ?: [];
+        }
+
+        // Format dates
+        $submission->submitted_at = \Carbon\Carbon::parse($submission->submitted_at);
+        $submission->due_date = \Carbon\Carbon::parse($submission->due_date);
+        
+        // Check if submission was late
+        $submission->is_late = $submission->submitted_at->gt($submission->due_date);
+        
+        // Calculate days late if applicable
+        if ($submission->is_late) {
+            $submission->days_late = $submission->submitted_at->diffInDays($submission->due_date);
+        }
+
+        return view('assignments.view-submission', compact('submission', 'submissionFiles'));
     }
 }

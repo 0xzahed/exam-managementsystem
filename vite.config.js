@@ -8,16 +8,27 @@ export default defineConfig({
             input: [
                 'resources/css/app.css', 
                 'resources/js/app.js',
+                'resources/js/pages/welcome.js',
+                'resources/js/pages/registration.js',
+                'resources/js/pages/auth.js',
+                'resources/js/pages/assignments-submissions.js',
+                'resources/js/pages/assignment-show.js',
+                'resources/js/pages/assignments/create.js',
+                'resources/js/pages/students/index.js',
+                'resources/js/pages/courses/course-create.js',
                 'resources/js/pages/courses/manage.js',
                 'resources/js/pages/courses/materials.js',
-                'resources/js/pages/courses-enrollment.js',
-                'resources/js/pages/students/index.js',
-                'resources/js/pages/assignments/create.js',
-                'resources/js/pages/assignment-show.js',
-                'resources/js/pages/registration.js'
+                'resources/js/pages/courses-enrollment.js'
             ],
             refresh: true,
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            }
+        }
+    }
 });

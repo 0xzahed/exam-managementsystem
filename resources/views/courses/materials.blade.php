@@ -258,7 +258,7 @@
                     </div>
                     @endforeach
 
-                    <button onclick="showModal('materialModal')" class="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition-colors">
+                    <button id="addMaterialButton" onclick="showModal('materialModal')" class="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition-colors">
                         <i class="fas fa-plus mr-2"></i>Add Material
                     </button>
                 </div>
@@ -418,8 +418,8 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <!-- Add Section Modal -->
-<div id="sectionModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-md w-full p-6">
+<div id="sectionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 border border-gray-300 shadow-2xl">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Add New Section</h3>
         <form id="sectionForm" action="{{ route('courses.sections.store', $course) }}" method="POST">
             @csrf
@@ -459,7 +459,7 @@
                             <option value="">Select Section</option>
                             @php
                                 $storedSections = json_decode($course->sections ?? '[]', true);
-                                $materialSections = $materials->pluck('section')->unique()->filter()->toArray();
+                                $materialSections = $course->materials->pluck('section')->unique()->filter()->toArray();
                                 $allAvailableSections = array_unique(array_merge($storedSections, $materialSections));
                             @endphp
                             @foreach($allAvailableSections as $section)
@@ -471,7 +471,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                    <select id="materialType" name="material_type" onchange="toggleField()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <select id="materialType" name="material_type" onchange="toggleMaterialFields()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                         <option value="text">Text Content</option>
                         <option value="file" selected>File Upload</option>
                     </select>
@@ -502,31 +502,16 @@
                 <!-- File Upload Field -->
                 <div id="fileField" class="material-field">
                     <label class="block text-sm font-medium text-gray-700 mb-3">File Upload</label>
-                    <div class="file-upload-area border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-300 cursor-pointer" id="fileUploadArea">
-                        <input type="file" id="materialFile" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.gif" 
-                               class="hidden" onchange="handleFileSelect(event)">
-                        <div class="upload-content">
-                            <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-indigo-600"></i>
+                    <div class="file-upload-area border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-indigo-600"></i>
                             </div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-2">Choose File to Upload</h3>
+                            <h3 class="text-lg font-medium text-gray-800 mb-2">Choose File to Upload</h3>
                             <p class="text-gray-500 mb-4">Drag and drop or click to browse</p>
-                            <button type="button" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                                <i class="fas fa-plus mr-2"></i>
-                                Browse Files
-                            </button>
-                            <p class="text-xs text-gray-400 mt-4">Supported: PDF, PPT, DOC, Images (Max: 10MB)</p>
-                        </div>
-                        <div class="file-selected hidden">
-                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-check text-2xl text-green-600"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">File Selected</h3>
-                            <p class="text-gray-600 mb-2" id="selectedFileName"></p>
-                            <p class="text-sm text-gray-500 mb-4" id="selectedFileSize"></p>
-                            <button type="button" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium" onclick="clearFileSelection()">
-                                <i class="fas fa-times mr-1"></i>Remove File
-                            </button>
+                            <input type="file" id="materialFile" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.gif" 
+                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <p class="text-xs text-gray-400 mt-2">Supported: PDF, PPT, DOC, Images (Max: 10MB)</p>
                         </div>
                     </div>
                 </div>
@@ -540,7 +525,7 @@
             </div>
 
             <div class="flex justify-end space-x-3 mt-6">
-                <button type="button" onclick="hideModal('materialModal')" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                <button type="button" onclick="closeMaterialModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
@@ -552,8 +537,8 @@
 </div>
 
 <!-- Edit Material Modal -->
-<div id="editMaterialModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+<div id="editMaterialModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 border border-gray-300 shadow-2xl">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Edit Material</h3>
         <form id="editMaterialForm" enctype="multipart/form-data">
             <input type="hidden" id="editMaterialId">

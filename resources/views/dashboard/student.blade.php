@@ -119,15 +119,40 @@
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                             <div class="p-6 border-b border-gray-200">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-lg font-semibold text-gray-800">My Courses</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800">My Courses ({{ $totalEnrolledCourses }})</h3>
+                                    <!-- <a href="/student/courses/enroll" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        <i class="fas fa-plus mr-1"></i>Enroll More
+                                    </a> -->
                                 </div>
                             </div>
                             <div class="p-6">
-                                <div class="text-center py-4">
-                                    <i class="fas fa-book text-gray-400 text-2xl mb-2"></i>
-                                    <p class="text-gray-500 text-sm">Course enrollment feature coming soon.</p>
-                                    <p class="text-gray-400 text-xs mt-1">You'll be able to enroll in courses here.</p>
-                                </div>
+                                @forelse($enrolledCourses as $course)
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 bg-gray-50 rounded-lg mb-3">
+                                        <div class="flex items-center">
+                                            <div class="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center mr-4">
+                                                <i class="fas fa-book text-lg"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-gray-800">{{ $course->title }}</h4>
+                                                <p class="text-sm text-gray-600">{{ $course->code }} • {{ $course->instructor->first_name ?? '' }} {{ $course->instructor->last_name ?? '' }}</p>
+                                                <p class="text-xs text-gray-500">Enrolled: {{ $course->pivot->enrolled_at ? \Carbon\Carbon::parse($course->pivot->enrolled_at)->format('M d, Y') : 'N/A' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <a href="/my-courses/{{ $course->id }}" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                                                <i class="fas fa-eye mr-1 "></i>View
+                                            </a>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="text-center py-8">
+                                        <i class="fas fa-book text-gray-400 text-3xl mb-3"></i>
+                                        <p class="text-gray-500 text-sm mb-2">No courses enrolled yet</p>
+                                        <a href="/student/courses/enroll" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                                            <i class="fas fa-plus mr-2"></i>Browse Courses
+                                        </a>
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
 

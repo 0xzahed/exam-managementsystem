@@ -60,17 +60,17 @@
             @if(auth()->user()->role === 'instructor')
             <div class="w-full lg:w-auto flex flex-col gap-2">
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <a href="{{ route('assignments.edit', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.edit', $assignment) }}"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-edit"></i>
                         Edit Assignment
                     </a>
-                    <a href="{{ route('assignments.submissions', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.submissions', $assignment) }}"
                         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-list"></i>
                         View Submissions ({{ $assignment->submissions->count() }})
                     </a>
-                    <form action="{{ route('assignments.destroy', $assignment) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this assignment? This action cannot be undone.')">
+                    <form action="{{ route('instructor.assignments.destroy', $assignment) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this assignment? This action cannot be undone.')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
@@ -219,9 +219,18 @@
 
                     @if($assignment->allowed_file_types)
                         @php
-                            $allowedTypes = is_string($assignment->allowed_file_types) 
-                                ? json_decode($assignment->allowed_file_types, true) 
-                                : $assignment->allowed_file_types;
+                            $allowedTypesRaw = $assignment->allowed_file_types;
+                            if (is_string($allowedTypesRaw)) {
+                                $allowedTypes = json_decode($allowedTypesRaw, true);
+                                if (!is_array($allowedTypes)) {
+                                    $allowedTypes = explode(',', $allowedTypesRaw);
+                                }
+                            } elseif (is_array($allowedTypesRaw)) {
+                                $allowedTypes = $allowedTypesRaw;
+                            } else {
+                                $allowedTypes = ['pdf', 'doc', 'docx'];
+                            }
+                            $allowedTypes = array_filter(array_map('trim', $allowedTypes));
                         @endphp
                         <div class="flex items-center gap-2">
                             <i class="fas fa-file-alt text-green-500"></i>
@@ -240,6 +249,13 @@
                         <span>Maximum attempts: {{ $assignment->max_attempts }}</span>
                     </div>
                     @endif
+                    
+                    @if($userSubmission)
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        <span>Your attempts: {{ $userSubmission->attempt_number ?? 1 }}/{{ $assignment->max_attempts }}</span>
+                    </div>
+                    @endif
 
                     <div class="flex items-center gap-2">
                         <i class="fas fa-upload text-purple-500"></i>
@@ -255,8 +271,10 @@
             @if(auth()->user()->role === 'student')
                 <!-- Student Submission Form -->
                 @php
-                    $userSubmission = $assignment->submissions()->where('student_id', auth()->id())->first();
-                    $canSubmit = !$userSubmission || (($assignment->max_attempts ?? null) && ($userSubmission->attempt_number ?? 0) < $assignment->max_attempts);
+                    $currentAttempts = $assignment->getStudentAttemptNumber(auth()->id());
+                    $maxAttempts = $assignment->max_attempts ?? 3;
+                    $canSubmit = $assignment->canStudentSubmit(auth()->id());
+                    $attemptsRemaining = $assignment->getStudentRemainingAttempts(auth()->id());
                 @endphp
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -277,6 +295,22 @@
                                 Grade: {{ $userSubmission->grade }}/{{ $assignment->marks ?? 100 }}
                             </p>
                             @endif
+                            
+                            <!-- Attempt Information -->
+                            <div class="mt-3 pt-3 border-t border-green-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-green-700 text-sm font-medium">Attempt {{ $userSubmission->attempt_number ?? 1 }} of {{ $maxAttempts }}</span>
+                                    @if($attemptsRemaining > 0)
+                                        <span class="text-green-600 text-sm bg-green-100 px-2 py-1 rounded-full">
+                                            {{ $attemptsRemaining }} attempt{{ $attemptsRemaining > 1 ? 's' : '' }} remaining
+                                        </span>
+                                    @else
+                                        <span class="text-red-600 text-sm bg-red-100 px-2 py-1 rounded-full">
+                                            No attempts remaining
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
 
                         @if($userSubmission->file_path)
@@ -312,9 +346,20 @@
                                 </label>
                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors" id="dropZone">
                                     @php
-                                        $allowedTypes = $assignment->allowed_file_types ?? ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png'];
-                                        if (is_string($allowedTypes)) {
-                                            $allowedTypes = json_decode($allowedTypes, true);
+                                        $allowedTypesRaw = $assignment->allowed_file_types ?? ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png'];
+                                        if (is_string($allowedTypesRaw)) {
+                                            $allowedTypes = json_decode($allowedTypesRaw, true);
+                                            if (!is_array($allowedTypes)) {
+                                                $allowedTypes = explode(',', $allowedTypesRaw);
+                                            }
+                                        } elseif (is_array($allowedTypesRaw)) {
+                                            $allowedTypes = $allowedTypesRaw;
+                                        } else {
+                                            $allowedTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png'];
+                                        }
+                                        $allowedTypes = array_filter(array_map('trim', $allowedTypes));
+                                        if (empty($allowedTypes)) {
+                                            $allowedTypes = ['pdf', 'doc', 'docx'];
                                         }
                                         $accept = '.' . implode(',.', $allowedTypes);
                                     @endphp
@@ -394,7 +439,8 @@
                         <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
                             <i class="fas fa-info-circle text-gray-500 text-2xl mb-2"></i>
                             <p class="text-gray-700 font-medium">Maximum Attempts Reached</p>
-                            <p class="text-gray-600 text-sm">You have reached the maximum number of submission attempts.</p>
+                            <p class="text-gray-600 text-sm">You have used all {{ $maxAttempts }} submission attempts for this assignment.</p>
+                            <p class="text-gray-500 text-xs mt-2">Contact your instructor if you need additional attempts.</p>
                         </div>
                     @endif
                 </div>
@@ -437,7 +483,7 @@
                         @endif
                     </div>
 
-                    <a href="{{ route('assignments.submissions', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.submissions', $assignment) }}"
                         class="block w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors">
                         <i class="fas fa-list mr-2"></i>
                         Grade Submissions

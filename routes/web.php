@@ -136,27 +136,33 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
     
     // Assignment management routes (Instructor only)
     Route::get('/instructor/assignments', [AssignmentController::class, 'index'])->name('instructor.assignments.index');
-    Route::get('/assignments/create', [AssignmentController::class, 'create'])->name('assignments.create');
-    Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
-    Route::get('/assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
-    Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
-    Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+    Route::get('/instructor/assignments/create', [AssignmentController::class, 'create'])->name('instructor.assignments.create');
+    Route::post('/instructor/assignments', [AssignmentController::class, 'store'])->name('instructor.assignments.store');
+    Route::get('/instructor/assignments/{assignment}', [AssignmentController::class, 'show'])->name('instructor.assignments.show');
+    Route::get('/instructor/assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('instructor.assignments.edit');
+    Route::put('/instructor/assignments/{assignment}', [AssignmentController::class, 'update'])->name('instructor.assignments.update');
+    Route::delete('/instructor/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('instructor.assignments.destroy');
     
     // Assignment submission management routes
-    Route::get('/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])->name('assignments.submissions');
-    Route::get('/assignments/submissions/{submission}/view', [AssignmentController::class, 'viewSubmission'])->name('assignments.submissions.view');
-    Route::get('/assignments/submissions/{submission}/download', [AssignmentController::class, 'downloadSubmission'])->name('assignments.submissions.download');
-    Route::post('/assignments/submissions/{submission}/grade', [AssignmentController::class, 'gradeSubmission'])->name('assignments.submissions.grade');
+    Route::get('/instructor/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])->name('instructor.assignments.submissions');
+    Route::get('/instructor/assignments/submissions/{submission}/view', [AssignmentController::class, 'viewSubmission'])->name('instructor.assignments.submissions.view');
+    Route::get('/instructor/assignments/submissions/{submission}/download', [AssignmentController::class, 'downloadSubmission'])->name('instructor.assignments.submissions.download');
+    Route::post('/instructor/assignments/submissions/{submission}/grade', [AssignmentController::class, 'gradeSubmission'])->name('instructor.assignments.submissions.grade');
     Route::post('/assignments/{assignment}/bulk-grade', [AssignmentController::class, 'bulkGrade'])->name('assignments.bulk-grade');
     Route::post('/assignments/{assignment}/update-marks', [AssignmentController::class, 'updateMarks'])->name('assignments.update-marks');
     Route::get('/assignments/{assignment}/export-submissions', [AssignmentController::class, 'exportSubmissions'])->name('assignments.export-submissions');
+    
+    // Attempt management routes
+    Route::post('/assignments/{assignment}/students/{student}/reset-attempts', [AssignmentController::class, 'resetStudentAttempts'])->name('instructor.assignments.reset-attempts');
+    Route::post('/assignments/{assignment}/increase-max-attempts', [AssignmentController::class, 'increaseMaxAttempts'])->name('instructor.assignments.increase-max-attempts');
 });
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     // Student course enrollment routes
-    Route::get('/courses/enroll', [EnrollmentController::class, 'showEnrollment'])->name('student.courses.enroll');
-    Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'enrollInCourse'])->name('student.courses.enroll.submit');
+    Route::get('/student/enroll', [EnrollmentController::class, 'showEnrollment'])->name('student.courses.enroll');
+    Route::post('/student/courses/{course}/enroll', [EnrollmentController::class, 'enrollInCourse'])->name('student.courses.enroll.submit');
     Route::get('/my-courses', [EnrollmentController::class, 'myCourses'])->name('student.courses.my');
+    Route::get('/courses/{course}/details', [EnrollmentController::class, 'courseDetails'])->name('course.details');
     Route::delete('/my-courses/{course}/unenroll', [EnrollmentController::class, 'unenrollFromCourse'])->name('student.courses.unenroll');
     
     // Student assignment routes only

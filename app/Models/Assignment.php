@@ -192,4 +192,60 @@ class Assignment extends Model
     {
         return $query->where('course_id', $courseId);
     }
+    
+    /**
+     * Check if a student can submit to this assignment.
+     */
+    public function canStudentSubmit($studentId): bool
+    {
+        $submission = $this->submissions()->where('student_id', $studentId)->first();
+        $currentAttempts = $submission ? ($submission->attempt_number ?? 1) : 0;
+        $maxAttempts = $this->max_attempts ?? 3;
+        
+        return $currentAttempts < $maxAttempts;
+    }
+    
+    /**
+     * Get the current attempt number for a student.
+     */
+    public function getStudentAttemptNumber($studentId): int
+    {
+        $submission = $this->submissions()->where('student_id', $studentId)->first();
+        return $submission ? ($submission->attempt_number ?? 1) : 0;
+    }
+    
+    /**
+     * Get the remaining attempts for a student.
+     */
+    public function getStudentRemainingAttempts($studentId): int
+    {
+        $currentAttempts = $this->getStudentAttemptNumber($studentId);
+        $maxAttempts = $this->max_attempts ?? 3;
+        return max(0, $maxAttempts - $currentAttempts);
+    }
+    
+    /**
+     * Reset attempts for a student (instructor action)
+     */
+    public function resetStudentAttempts($studentId): bool
+    {
+        $submission = $this->submissions()->where('student_id', $studentId)->first();
+        if ($submission) {
+            $submission->update(['attempt_number' => 0]);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Increase max attempts for the assignment
+     */
+    public function increaseMaxAttempts($newMaxAttempts): bool
+    {
+        if ($newMaxAttempts > $this->max_attempts) {
+            $this->update(['max_attempts' => $newMaxAttempts]);
+            return true;
+        }
+        return false;
+    }
 }

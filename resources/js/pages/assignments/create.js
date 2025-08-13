@@ -309,6 +309,36 @@ function publishAssignment() {
 }
 
 /**
+ * Update existing assignment
+ */
+function updateAssignment() {
+    console.log('Updating assignment...');
+    
+    const statusInput = document.getElementById('assignmentStatus');
+    if (statusInput) {
+        statusInput.value = 'published';
+    }
+    
+    // Save TinyMCE content before validation
+    if (typeof tinymce !== 'undefined') {
+        const editor = tinymce.get('instructions');
+        if (editor) {
+            editor.save();
+        }
+    }
+    
+    if (validateForm()) {
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to update this assignment?')) {
+            showLoading('Updating assignment...');
+            document.getElementById('assignmentForm').submit();
+        }
+    } else {
+        showError('Please fill in all required fields before updating.');
+    }
+}
+
+/**
  * Show error message
  */
 function showError(message) {
@@ -411,4 +441,5 @@ function hideSuccess() {
 // Expose functions globally for onclick handlers
 window.saveDraft = saveDraft;
 window.publishAssignment = publishAssignment;
+window.updateAssignment = updateAssignment;
 window.hideError = hideError;

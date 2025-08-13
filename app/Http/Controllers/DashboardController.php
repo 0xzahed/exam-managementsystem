@@ -18,26 +18,36 @@ class DashboardController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Get actual enrolled courses
+        // Get actual enrolled courses with proper pivot data
         $enrolledCourses = $user->enrolledCourses()
-            ->with('instructor')
-            ->orderBy('course_enrollments.enrolled_at', 'desc')
+            ->with(['instructor'])
+            ->withPivot(['enrolled_at', 'status', 'created_at', 'updated_at'])
+            ->orderByPivot('enrolled_at', 'desc')
             ->get();
+        
+        // Fix pivot date formatting
+        $enrolledCourses->each(function ($course) {
+            if ($course->pivot->enrolled_at && is_string($course->pivot->enrolled_at)) {
+                $course->pivot->enrolled_at = \Carbon\Carbon::parse($course->pivot->enrolled_at);
+            }
+        });
         
         // Calculate real statistics
         $totalEnrolledCourses = $enrolledCourses->count();
         $pendingAssignments = 0; // Will be implemented when assignment system is ready
         $upcomingExams = 0; // Will be implemented when exam system is ready
         
-        // Get recent activities (placeholder for now)
-        $recentActivities = collect([
-            (object) [
+        // Get recent activities based on actual data
+        $recentActivities = collect();
+        if ($enrolledCourses->count() > 0) {
+            $recentCourse = $enrolledCourses->first();
+            $recentActivities->push((object) [
                 'type' => 'enrollment',
-                'message' => 'Enrolled in ' . ($enrolledCourses->first()->title ?? 'courses'),
-                'time' => '2 hours ago',
+                'message' => 'Enrolled in ' . $recentCourse->title,
+                'time' => $recentCourse->pivot->enrolled_at ? $recentCourse->pivot->enrolled_at->diffForHumans() : 'Recently',
                 'icon' => 'fas fa-user-plus'
-            ]
-        ]);
+            ]);
+        }
         
         // Empty collections for future features
         $assignments = collect(); 

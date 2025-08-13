@@ -9,7 +9,7 @@
         <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-3 mb-4">
-                    <a href="{{ route('assignments.show', $assignment) }}"
+                    <a href="{{ route('instructor.assignments.show', $assignment) }}"
                         class="text-gray-600 hover:text-gray-900 transition-colors">
                         <i class="fas fa-arrow-left text-lg"></i>
                     </a>
@@ -47,10 +47,10 @@
             </div>
             
             <div class="flex flex-wrap gap-3">
-                <button onclick="updateAssignmentMarks()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <!-- <button onclick="updateAssignmentMarks()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-edit mr-2"></i>
                     Update Marks
-                </button>
+                </button> -->
                 <button onclick="exportSubmissions()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-download mr-2"></i>
                     Export CSV
@@ -58,6 +58,10 @@
                 <button onclick="bulkGrade()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-edit mr-2"></i>
                     Bulk Grade
+                </button>
+                <button onclick="showAttemptManagementModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-redo mr-2"></i>
+                    Manage Attempts
                 </button>
             </div>
         </div>
@@ -271,12 +275,12 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         
-                                        <button onclick="gradeSubmission({{ $submission->id }})" 
+                                        <!-- <button onclick="gradeSubmission({{ $submission->id }})" 
                                                 class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors {{ $submission->grade !== null ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-blue-100 text-blue-800 hover:bg-blue-200' }}"
                                                 title="{{ $submission->grade !== null ? 'Edit Grade' : 'Grade Submission' }}">
                                             <i class="fas fa-edit mr-1"></i>
                                             {{ $submission->grade !== null ? 'Edit Grade' : 'Grade' }}
-                                        </button>
+                                        </button> -->
                                         
                                         @if(count($studentFiles) > 0 || $submission->file_path)
                                         <button onclick="downloadSubmission({{ $submission->id }})" 
