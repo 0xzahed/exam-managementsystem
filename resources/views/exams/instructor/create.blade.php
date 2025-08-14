@@ -177,6 +177,19 @@
                 </div>
             </div>
 
+            <!-- Cohort Assignment -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-900">Cohort Assignment</h2>
+                    <button type="button" id="addCohortBtn" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Cohort
+                    </button>
+                </div>
+                <div class="p-6 space-y-4" id="cohortsContainer">
+                    <!-- Repeater container for cohorts -->
+                </div>
+            </div>
+
             <!-- Actions -->
             <div class="flex items-center justify-end">
                 <div class="flex items-center space-x-4">
@@ -195,4 +208,49 @@
 
 @section('scripts')
 @vite('resources/js/pages/exams/create.js')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('cohortsContainer');
+        document.getElementById('addCohortBtn').addEventListener('click', () => {
+            const index = container.children.length;
+            const cohortHtml = `
+            <div class="border border-gray-200 p-4 rounded-lg space-y-4 relative" data-index="${index}">
+                <button type="button" class="absolute top-2 right-2 text-red-600 removeCohort"><i class="fas fa-times-circle"></i></button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cohort Name</label>
+                        <input name="cohorts[${index}][cohort_name]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <input name="cohorts[${index}][description]" class="w-full mt-1 px-3 py-2 border rounded-lg">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Start Time</label>
+                        <input type="datetime-local" name="cohorts[${index}][start_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">End Time</label>
+                        <input type="datetime-local" name="cohorts[${index}][end_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Students</label>
+                        <select multiple name="cohorts[${index}][student_ids][]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                            @foreach($students as $student)
+                                <option value="{{ $student->id }}">{{ $student->first_name }} {{ $student->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', cohortHtml);
+            // attach remove listener
+            container.querySelectorAll('.removeCohort').forEach(btn => {
+                btn.onclick = () => btn.closest('[data-index]').remove();
+            });
+        });
+    });
+</script>
 @endsection

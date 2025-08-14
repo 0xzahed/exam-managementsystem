@@ -208,7 +208,7 @@ function removeCourse(studentId, courseId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('Student removed from course successfully!', 'success');
+            showSuccess('Student removed from course successfully!');
             // Refresh the modal content
             const currentStudentId = document.querySelector('[onclick*="viewStudent"]')?.onclick.toString().match(/\d+/)?.[0];
             if (currentStudentId) {
@@ -217,12 +217,12 @@ function removeCourse(studentId, courseId) {
             // Refresh the page to update the student list
             setTimeout(() => window.location.reload(), 1500);
         } else {
-            showToast(data.message || 'Failed to remove student', 'error');
+            showError(data.message || 'Failed to remove student');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('An error occurred while removing student', 'error');
+        showError('An error occurred while removing student');
     });
 }
 
@@ -237,33 +237,15 @@ function hideStudentModal() {
 
 // Message student (placeholder)
 function messageStudent(studentId) {
-    showToast('Message functionality will be implemented soon!', 'info');
+    showInfo('Message functionality will be implemented soon!');
 }
 
 // Export students (placeholder)
 function exportStudents() {
-    showToast('Export functionality will be implemented soon!', 'info');
+    showInfo('Export functionality will be implemented soon!');
 }
 
-// Toast notification function
-function showToast(message, type = 'success') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        type === 'info' ? 'bg-blue-500' : 'bg-gray-500'
-    } text-white`;
-    toast.textContent = message;
-    
-    // Add to body
-    document.body.appendChild(toast);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
+// Deprecated local toast removed; using global console-backed helpers
 
 // Close modal when clicking outside
 document.addEventListener('click', function(e) {

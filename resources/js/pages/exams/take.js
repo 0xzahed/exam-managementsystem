@@ -183,7 +183,7 @@ class ExamTaker {
         
         // Validate file size (10MB)
         if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB');
+            showError('File size must be less than 10MB');
             event.target.value = '';
             return;
         }
@@ -216,7 +216,7 @@ class ExamTaker {
             }
         } catch (error) {
             console.error('File upload error:', error);
-            alert('Failed to upload file. Please try again.');
+            showError('Failed to upload file. Please try again.');
             uploadedFileDiv.classList.add('hidden');
             event.target.value = '';
         }
@@ -365,7 +365,7 @@ class ExamTaker {
         });
         
         if (unansweredQuestions.length > 0) {
-            alert(`You have ${unansweredQuestions.length} unanswered questions: ${unansweredQuestions.join(', ')}`);
+            showInfo(`You have ${unansweredQuestions.length} unanswered questions: ${unansweredQuestions.join(', ')}`);
         }
     }
 
@@ -419,7 +419,7 @@ class ExamTaker {
             }
         } catch (error) {
             console.error('Submission error:', error);
-            alert('Failed to submit exam. Please try again.');
+            showError('Failed to submit exam. Please try again.');
             this.isSubmitting = false;
             this.hideSubmissionOverlay();
             this.startTimer();

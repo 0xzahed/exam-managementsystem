@@ -469,4 +469,29 @@ class GoogleDriveService
             return false;
         }
     }
+    
+    /**
+     * Upload profile photo: create or find user folder and upload the file
+     */
+    public function uploadProfilePhoto(\Illuminate\Http\UploadedFile $file, string $userName)
+    {
+        $parentFolderId = env('GOOGLE_PROFILE_FOLDER_ID');
+        // find existing user folder
+        $existing = $this->findFolderByName($userName, $parentFolderId);
+        if ($existing) {
+            $folderId = $existing['id'];
+        } else {
+            // create user folder
+            $folderMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $userName,
+                'parents' => [$parentFolderId],
+                'mimeType' => 'application/vnd.google-apps.folder'
+            ]);
+            $newFolder = $this->service->files->create($folderMetadata);
+            $folderId = $newFolder->id;
+        }
+        // use original file name
+        $fileName = $file->getClientOriginalName();
+        return $this->uploadFile($file, $fileName, $folderId);
+    }
 }

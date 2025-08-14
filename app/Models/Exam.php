@@ -61,6 +61,14 @@ class Exam extends Model
     {
         return $this->hasMany(ExamAttempt::class);
     }
+    
+    /**
+     * Exam Cohorts (groups of students with specific time windows)
+     */
+    public function cohorts()
+    {
+        return $this->hasMany(\App\Models\ExamCohort::class);
+    }
 
     // Helper methods
     public function isActive()
@@ -77,16 +85,27 @@ class Exam extends Model
         if ($attempt) {
             return false;
         }
-
-        // Check if exam is published
+        
+        // Must be published
         if ($this->status !== 'published') {
             return false;
         }
-
-        // Check if current time is within exam window
+        
         $now = Carbon::now();
-        if (!$now->gte($this->start_time) || !$now->lte($this->end_time)) {
-            return false;
+        // If cohorts defined, check cohort assignment and window
+        if ($this->cohorts()->exists()) {
+            $cohort = $this->getStudentCohort($studentId);
+            if (!$cohort) {
+                return false;
+            }
+            if (!$now->gte($cohort->start_time) || !$now->lte($cohort->end_time)) {
+                return false;
+            }
+        } else {
+            // Check if current time is within exam window
+            if (!$now->gte($this->start_time) || !$now->lte($this->end_time)) {
+                return false;
+            }
         }
 
         // Check if student is enrolled in the course
@@ -111,5 +130,18 @@ class Exam extends Model
     public function getDurationAttribute()
     {
         return $this->duration_minutes ?? 60;
+    }
+
+    /**
+     * Get the cohort for a specific student if defined
+     *
+     * @param int $studentId
+     * @return \App\Models\ExamCohort|null
+     */
+    public function getStudentCohort($studentId)
+    {
+        return $this->cohorts()
+            ->whereJsonContains('student_ids', $studentId)
+            ->first();
     }
 }

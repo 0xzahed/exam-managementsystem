@@ -235,25 +235,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!title) {
                 e.preventDefault();
-                alert('Please enter an exam title.');
+                showError('Please enter an exam title.');
                 return;
             }
             
             if (!courseId) {
                 e.preventDefault();
-                alert('Please select a course.');
+                showError('Please select a course.');
                 return;
             }
             
             if (!startTime || !endTime) {
                 e.preventDefault();
-                alert('Please set start and end times.');
+                showError('Please set start and end times.');
                 return;
             }
             
             if (questions.length === 0) {
                 e.preventDefault();
-                alert('Please add at least one question.');
+                showError('Please add at least one question.');
                 return;
             }
             
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (validationError) {
                 e.preventDefault();
-                alert(validationError);
+                showError(validationError);
                 return;
             }
             

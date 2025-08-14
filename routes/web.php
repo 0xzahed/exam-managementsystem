@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -82,7 +82,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     })->name('admin.dashboard');
 });
 
-// Course Routes for Instructors
+    // Help & Support
+    Route::get('/help', [App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
+
+    // Profile Settings (protected)
+    Route::get('/profile/settings', [App\Http\Controllers\ProfileController::class, 'index'])
+        ->middleware('auth')
+        ->name('profile.settings');
+    Route::put('/profile/settings', [App\Http\Controllers\ProfileController::class, 'update'])
+        ->middleware('auth')
+        ->name('profile.update');
+
+    // Course Routes for Instructors
 Route::middleware(['auth', 'role:instructor'])->group(function () {
     Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
     Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');

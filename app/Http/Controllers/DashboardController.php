@@ -158,23 +158,17 @@ class DashboardController extends Controller
         // Get recent grades
         $grades = collect();
         if ($enrolledCourseIds->isNotEmpty()) {
-            $grades = Grade::whereIn('course_id', $enrolledCourseIds)
-                ->where('student_id', $user->id)
-                ->with(['course', 'assignment', 'exam'])
+        $grades = Grade::whereIn('course_id', $enrolledCourseIds)
+            ->where('student_id', $user->id)
+            ->with(['course', 'gradeable'])
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get()
                 ->map(function($grade) {
-                    $title = '';
-                    $type = '';
-                    
-                    if ($grade->assignment) {
-                        $title = $grade->assignment->title;
-                        $type = 'Assignment';
-                    } elseif ($grade->exam) {
-                        $title = $grade->exam->title;
-                        $type = 'Exam';
-                    }
+                    // Use polymorphic gradeable relation
+                    $gradeable = $grade->gradeable;
+                    $title = $gradeable->title ?? '';
+                    $type = $gradeable ? class_basename($gradeable) : '';
                     
                     $score = $grade->score ?? 0;
                     $maxScore = $grade->max_score ?? 100;
@@ -185,7 +179,8 @@ class DashboardController extends Controller
                         'course' => $grade->course->title ?? 'Unknown Course',
                         'type' => $type,
                         'score' => $score . '/' . $maxScore,
-                        'percentage' => $percentage . '%',
+                        'percentage' => $percentage,               // numeric for calculations
+                        'percentage_display' => $percentage . '%',  // formatted for view
                         'color' => $percentage >= 90 ? 'text-green-600' : ($percentage >= 80 ? 'text-blue-600' : ($percentage >= 70 ? 'text-yellow-600' : 'text-red-600')),
                         'date' => $grade->created_at->format('M d, Y')
                     ];

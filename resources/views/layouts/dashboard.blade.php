@@ -75,16 +75,15 @@
     <main class="main-content">
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Enhanced Notifications -->
-                @include('components.notifications')
+                <!-- Global Flash Messages -->
+                @include('components.flash')
                 
                 @yield('content')
             </div>
         </div>
     </main>
 
-    <!-- Toast Notifications -->
-    @include('components.toast')
+    
 
     <!-- Sidebar Toggle Script -->
     <script>

@@ -303,8 +303,8 @@
 @vite('resources/js/pages/exams-index.js')
 <script>
 function showExamDetails(examId) {
-    // For now, just show an alert with exam details
-    alert('Exam details will be shown here. Exam ID: ' + examId);
+    // For now, just log a message; UI modal can be added later
+    showInfo('Exam details will be shown here. Exam ID: ' + examId);
 }
 </script>
 @endsection

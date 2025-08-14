@@ -38,30 +38,7 @@
                 </div>
             </div>
 
-            <!-- Success/Error Messages -->
-            @if (session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
-                    <div>
-                        <h3 class="text-green-800 font-medium">Success!</h3>
-                        <p class="text-green-700 text-sm">{{ session('success') }}</p>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            @if (session('error'))
-            <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-circle text-red-500 text-xl mr-3"></i>
-                    <div>
-                        <h3 class="text-red-800 font-medium">Error</h3>
-                        <p class="text-red-700 text-sm">{{ session('error') }}</p>
-                    </div>
-                </div>
-            </div>
-            @endif
+            
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-4">
@@ -124,9 +101,6 @@
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg font-semibold text-gray-800">My Courses</h3>
                                 <div class="flex space-x-3">
-                                    <a href="{{ route('courses.create') }}" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 ">
-                                        <i class="fas fa-plus mr-2"></i>Create Course
-                                    </a>
                                     <a href="{{ route('courses.manage') }}" class="text-sm font-medium text-purple-600 hover:text-purple-700">View All</a>
                                 </div>
                             </div>

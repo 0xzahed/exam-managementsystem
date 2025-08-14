@@ -414,7 +414,7 @@
                     <p class="mb-6 text-gray-700">Are you sure you want to delete the course "<span id="deleteCourseTitle" class="font-semibold"></span>"? All related assignments, grades, and student enrollments will be permanently removed.</p>
                     <div class="flex justify-end space-x-4">
                         <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-                        <button onclick="alert('Course deleted successfully')" class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">
+                        <button onclick="showSuccess('Course deleted successfully')" class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700">
                             <i class="mr-2 fas fa-trash"></i>Delete Course
                         </button>
                     </div>

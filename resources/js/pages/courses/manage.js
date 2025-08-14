@@ -52,6 +52,9 @@ async function loadStudents(courseId) {
 }
 
 function updateStudentsDisplay(data) {
+    // Ensure students array is defined
+    const students = Array.isArray(data.students) ? data.students : [];
+    studentsData = students; // update global data
     // Update course info
     document.getElementById('courseInfo').textContent = `${data.course_code} - ${data.course_title}`;
     document.getElementById('studentCount').textContent = `${data.count} students`;
@@ -59,7 +62,7 @@ function updateStudentsDisplay(data) {
     // Update students table
     const tbody = document.getElementById('studentsTableBody');
     
-    if (data.students.length === 0) {
+    if (students.length === 0) {
         tbody.innerHTML = `
             <div class="flex items-center justify-center py-12">
                 <div class="text-center">
@@ -71,7 +74,7 @@ function updateStudentsDisplay(data) {
         return;
     }
     
-    tbody.innerHTML = data.students.map(student => `
+    tbody.innerHTML = students.map(student => `
         <div class="px-6 py-4 hover:bg-gray-50" data-student-id="${student.id}">
             <div class="grid grid-cols-12 gap-4 text-sm">
                 <div class="col-span-1 font-medium text-gray-900">${student.serial}</div>
@@ -136,7 +139,7 @@ async function removeStudent(studentId, studentName) {
             document.getElementById('studentCount').textContent = `${studentsData.length} students`;
             
             // Show success message
-            showToast(data.message, 'success');
+            showSuccess(data.message);
             
             // If no students left, show empty state
             if (studentsData.length === 0) {
@@ -149,13 +152,13 @@ async function removeStudent(studentId, studentName) {
         
     } catch (error) {
         console.error('Error removing student:', error);
-        showToast(error.message, 'error');
+        showError(error.message);
     }
 }
 
 function exportStudentList() {
     if (studentsData.length === 0) {
-        showToast('No students to export', 'error');
+        showError('No students to export');
         return;
     }
     
@@ -181,7 +184,7 @@ function exportStudentList() {
     a.click();
     window.URL.revokeObjectURL(url);
     
-    showToast('Student list exported successfully', 'success');
+    showSuccess('Student list exported successfully');
 }
 
 // Edit modal functions
@@ -230,25 +233,7 @@ function closeCreateModal() {
     modal.classList.remove('flex');
 }
 
-// Toast notification function
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white ${
-        type === 'success' ? 'bg-green-600' : 'bg-red-600'
-    } shadow-lg`;
-    toast.innerHTML = `
-        <div class="flex items-center">
-            <i class="mr-2 fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
+// Deprecated local toast removed; using global helpers
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {

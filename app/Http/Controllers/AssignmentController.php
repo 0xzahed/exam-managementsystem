@@ -163,9 +163,13 @@ class AssignmentController extends Controller
                 'notify_late_submission' => $request->boolean('notify_late_submission'),
             ]);
             
-            // Send email notifications to enrolled students if notify_on_assign is checked and status is published
+            // Notify enrolled students via email and in-app if requested
             if ($validatedData['status'] === 'published' && $request->boolean('notify_on_assign')) {
-                $this->sendAssignmentNotification($assignment);
+                // Fetch enrolled students
+                $enrolledStudents = $course->students;
+                foreach ($enrolledStudents as $student) {
+                    $student->notify(new \App\Notifications\AssignmentCreated($assignment));
+                }
             }
             
             DB::commit();

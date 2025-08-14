@@ -65,10 +65,10 @@
                         <div class="px-4 py-2 border-b border-gray-100">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Quick Actions</p>
                         </div>
-                        <a href="#" onclick="alert('Profile Settings feature coming soon!')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <a href="{{ route('profile.settings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             <i class="fas fa-user mr-2"></i>Profile Settings
                         </a>
-                        <a href="#" onclick="alert('Help & Support feature coming soon!')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <a href="{{ route('help.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             <i class="fas fa-question-circle mr-2"></i>Help & Support
                         </a>
                         <hr class="my-1">

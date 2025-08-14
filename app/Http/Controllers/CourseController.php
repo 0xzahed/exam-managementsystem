@@ -156,7 +156,7 @@ class CourseController extends Controller
         }
 
         $students = $course->students()
-            ->select('users.id', 'users.name', 'users.email', 'users.student_id', 'course_student.created_at as enrolled_at')
+            ->select('users.id', 'users.name', 'users.email', 'users.student_id', 'course_enrollments.enrolled_at as enrolled_at')
             ->orderBy('users.name')
             ->get()
             ->map(function ($student, $index) {

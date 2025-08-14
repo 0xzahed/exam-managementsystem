@@ -125,7 +125,7 @@ function initializeForms() {
  */
 function viewSubmission(submissionId) {
     // Show loading state
-    showLoadingToast('Loading submission details...');
+    showInfo('Loading submission details...');
     
     // Navigate to submission detail page
     window.location.href = `/instructor/assignments/submissions/${submissionId}/view`;
@@ -243,12 +243,12 @@ function handleGradeSubmission(e) {
     })
     .then(data => {
         if (data && data.success) {
-            showSuccessToast('Grade saved successfully!');
+            showSuccess('Grade saved successfully!');
             updateSubmissionRow(currentSubmissionId, grade, maxMarks, feedback);
             closeGradeModal();
             updateStatistics();
         } else if (data) {
-            showErrorToast(data.message || 'Failed to save grade');
+            showError(data.message || 'Failed to save grade');
         }
     })
     .catch(error => {
@@ -414,7 +414,7 @@ function handleUpdateMarks(e) {
         }
     })
     .catch(error => {
-        showErrorToast('Network error occurred');
+        showError('Network error occurred');
         console.error('Error:', error);
     })
     .finally(() => {
@@ -430,7 +430,7 @@ function bulkGrade() {
     const pendingSubmissions = document.querySelectorAll('.bg-yellow-100').length;
     
     if (pendingSubmissions === 0) {
-        showInfoToast('No pending submissions to grade');
+        showInfo('No pending submissions to grade');
         return;
     }
     
@@ -442,7 +442,7 @@ function bulkGrade() {
     const maxMarks = parseInt(document.getElementById('gradeInput').getAttribute('max'));
     
     if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > maxMarks) {
-        showErrorToast(`Grade must be between 0 and ${maxMarks}`);
+        showError(`Grade must be between 0 and ${maxMarks}`);
         return;
     }
     
@@ -451,7 +451,7 @@ function bulkGrade() {
     }
     
     // Show loading
-    showLoadingToast('Applying bulk grades...');
+    showInfo('Applying bulk grades...');
     
     // Get assignment ID
     const assignmentId = getAssignmentId();
@@ -470,15 +470,15 @@ function bulkGrade() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showSuccessToast(`Successfully graded ${data.count} submissions!`);
+            showSuccess(`Successfully graded ${data.count} submissions!`);
             // Reload page to show updated data
             setTimeout(() => window.location.reload(), 1000);
         } else {
-            showErrorToast(data.message || 'Failed to apply bulk grades');
+            showError(data.message || 'Failed to apply bulk grades');
         }
     })
     .catch(error => {
-        showErrorToast('Network error occurred');
+        showError('Network error occurred');
         console.error('Error:', error);
     });
 }
@@ -487,7 +487,7 @@ function bulkGrade() {
  * Export submissions to CSV
  */
 function exportSubmissions() {
-    showLoadingToast('Preparing export...');
+    showInfo('Preparing export...');
     
     const assignmentId = getAssignmentId();
     
@@ -502,7 +502,7 @@ function exportSubmissions() {
     link.click();
     document.body.removeChild(link);
     
-    showSuccessToast('Export started');
+    showSuccess('Export started');
 }
 
 /**
@@ -531,75 +531,7 @@ function closeAllModals() {
     closeUpdateMarksModal();
 }
 
-/**
- * Toast notification functions
- */
-function showSuccessToast(message) {
-    showToast(message, 'success');
-}
-
-function showErrorToast(message) {
-    showToast(message, 'error');
-}
-
-function showInfoToast(message) {
-    showToast(message, 'info');
-}
-
-function showLoadingToast(message) {
-    showToast(message, 'loading');
-}
-
-function showToast(message, type = 'info') {
-    // Remove existing toasts
-    const existingToast = document.getElementById('toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
-    // Create toast
-    const toast = document.createElement('div');
-    toast.id = 'toast';
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${getToastClasses(type)}`;
-    
-    // Toast content
-    toast.innerHTML = `
-        <div class="flex items-center gap-2">
-            ${getToastIcon(type)}
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Auto remove (except loading toasts)
-    if (type !== 'loading') {
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.classList.add('opacity-0', 'transform', 'translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, 4000);
-    }
-}
-
-function getToastClasses(type) {
-    switch(type) {
-        case 'success': return 'bg-green-500 text-white';
-        case 'error': return 'bg-red-500 text-white';
-        case 'loading': return 'bg-blue-500 text-white';
-        default: return 'bg-gray-800 text-white';
-    }
-}
-
-function getToastIcon(type) {
-    switch(type) {
-        case 'success': return '<i class="fas fa-check-circle"></i>';
-        case 'error': return '<i class="fas fa-exclamation-circle"></i>';
-        case 'loading': return '<i class="fas fa-spinner fa-spin"></i>';
-        default: return '<i class="fas fa-info-circle"></i>';
-    }
-}
+// Deprecated local toasts removed; using global helpers only
 
 // Make functions globally available
 window.viewSubmission = viewSubmission;

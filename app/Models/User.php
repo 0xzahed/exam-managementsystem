@@ -102,4 +102,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Announcement::class, 'instructor_id');
     }
+    /**
+     * Get full URL for profile photo or placeholder
+     */
+    public function getProfilePhotoDisplayUrlAttribute()
+    {
+        return $this->avatar
+            ?: asset('storage/default-avatar.png');
+    }
 }

@@ -22,9 +22,9 @@
     </style>
 </head>
 <body class="auth-container">
+    @include('components.flash')
     @yield('content')
     
-    <!-- Toast Notifications -->
-    @include('components.toast')
+    
 </body>
 </html>

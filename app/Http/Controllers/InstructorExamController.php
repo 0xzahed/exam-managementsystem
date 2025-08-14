@@ -41,9 +41,11 @@ class InstructorExamController extends Controller
     public function create()
     {
         $instructorId = Auth::id();
-        $courses = Course::where('instructor_id', $instructorId)->get();
+    $courses = Course::where('instructor_id', $instructorId)->get();
+    // Get all students for cohort assignments
+    $students = User::where('role', 'student')->get();
         
-        return view('exams.instructor.create', compact('courses'));
+    return view('exams.instructor.create', compact('courses', 'students'));
     }
 
     /**
@@ -51,7 +53,7 @@ class InstructorExamController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+    $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'course_id' => 'required|exists:courses,id',
@@ -65,7 +67,13 @@ class InstructorExamController extends Controller
             'questions.*.options' => 'required_if:questions.*.type,mcq|array|min:2',
             'questions.*.correct_answer' => 'required_if:questions.*.type,mcq|string',
             'attachments.*' => 'file|max:10240', // 10MB max per file
-        ]);
+            // Cohorts data
+            'cohorts' => 'nullable|array',
+            'cohorts.*.cohort_name' => 'required_with:cohorts|string|max:255',
+            'cohorts.*.start_time' => 'required_with:cohorts|date',
+            'cohorts.*.end_time' => 'required_with:cohorts|date|after:cohorts.*.start_time',
+            'cohorts.*.student_ids' => 'required_with:cohorts|array|min:1',
+    ]);
 
         try {
             DB::beginTransaction();
@@ -127,6 +135,18 @@ class InstructorExamController extends Controller
                 
                 $exam->update(['attachments' => $attachments]);
             }
+            // Handle exam cohorts assignment
+            if ($request->filled('cohorts')) {
+                foreach ($request->input('cohorts') as $cohortData) {
+                    $exam->cohorts()->create([
+                        'cohort_name' => $cohortData['cohort_name'],
+                        'description' => $cohortData['description'] ?? null,
+                        'start_time' => $cohortData['start_time'],
+                        'end_time' => $cohortData['end_time'],
+                        'student_ids' => $cohortData['student_ids'],
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -175,9 +195,11 @@ class InstructorExamController extends Controller
         
         $instructorId = Auth::id();
         $courses = Course::where('instructor_id', $instructorId)->get();
-        $exam->load('questions');
+    $exam->load('questions', 'cohorts');
+    // Get all students for cohort assignments
+    $students = User::where('role', 'student')->get();
         
-        return view('exams.instructor.edit', compact('exam', 'courses'));
+    return view('exams.instructor.edit', compact('exam', 'courses', 'students'));
     }
 
     /**
@@ -187,7 +209,7 @@ class InstructorExamController extends Controller
     {
         $this->authorizeExamAccess($exam);
         
-        $request->validate([
+    $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1',
@@ -200,6 +222,12 @@ class InstructorExamController extends Controller
             'questions.*.options' => 'required_if:questions.*.type,mcq|array|min:2',
             'questions.*.correct_answer' => 'required_if:questions.*.type,mcq|string',
             'attachments.*' => 'file|max:10240',
+            // Cohorts data
+            'cohorts' => 'nullable|array',
+            'cohorts.*.cohort_name' => 'required_with:cohorts|string|max:255',
+            'cohorts.*.start_time' => 'required_with:cohorts|date',
+            'cohorts.*.end_time' => 'required_with:cohorts|date|after:cohorts.*.start_time',
+            'cohorts.*.student_ids' => 'required_with:cohorts|array|min:1',
         ]);
 
         try {
@@ -261,6 +289,20 @@ class InstructorExamController extends Controller
                 }
                 
                 $exam->update(['attachments' => $attachments]);
+            }
+            // Handle exam cohorts assignment
+            if ($request->filled('cohorts')) {
+                // Remove old cohorts
+                $exam->cohorts()->delete();
+                foreach ($request->input('cohorts') as $cohortData) {
+                    $exam->cohorts()->create([
+                        'cohort_name' => $cohortData['cohort_name'],
+                        'description' => $cohortData['description'] ?? null,
+                        'start_time' => $cohortData['start_time'],
+                        'end_time' => $cohortData['end_time'],
+                        'student_ids' => $cohortData['student_ids'],
+                    ]);
+                }
             }
 
             DB::commit();

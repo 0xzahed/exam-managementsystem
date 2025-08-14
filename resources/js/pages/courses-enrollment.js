@@ -84,7 +84,7 @@ function enrollCourse(courseId) {
  */
 function confirmEnrollment() {
     if (!currentCourseId) {
-        alert('Course not selected. Please try again.');
+        showError('Course not selected. Please try again.');
         return;
     }
     
@@ -129,18 +129,18 @@ function submitEnrollment(password) {
         if (data.success) {
             closeEnrollModal();
             showSuccessModal(data.message);
-        } else {
-            if (data.message && data.message.toLowerCase().includes('password')) {
-                showPasswordError(data.message);
             } else {
-                alert(data.message || 'Enrollment failed. Please try again.');
+                if (data.message && data.message.toLowerCase().includes('password')) {
+                    showPasswordError(data.message);
+                } else {
+                    showError(data.message || 'Enrollment failed. Please try again.');
+                }
             }
-        }
     })
     .catch(error => {
         console.error('Enrollment error:', error);
         setLoadingState(false);
-        alert('Network error. Please check your connection and try again.');
+        showError('Network error. Please check your connection and try again.');
     });
 }
 

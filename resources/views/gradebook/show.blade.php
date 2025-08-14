@@ -297,12 +297,12 @@ document.getElementById('gradeForm').addEventListener('submit', function(e) {
                 location.reload();
             }, 1000);
         } else {
-            alert('Error updating grade: ' + data.message);
+            showError('Error updating grade: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating grade. Please try again.');
+        showError('Error updating grade. Please try again.');
     });
 });
 
@@ -313,28 +313,7 @@ document.getElementById('gradeModal').addEventListener('click', function(e) {
     }
 });
 
-// Show notification function
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium shadow-lg transition-all duration-300 transform translate-x-full`;
-    notification.className += type === 'success' ? ' bg-green-500' : ' bg-red-500';
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-    
-    // Animate out and remove
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
+// Deprecated inline notification removed
 </script>
 
 <style>

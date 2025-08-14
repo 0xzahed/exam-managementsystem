@@ -260,7 +260,7 @@
 <script>
 function exportResults() {
     // Implement export functionality
-    alert('Export functionality will be implemented here');
+    showInfo('Export functionality will be implemented here');
 }
 
 function viewAttemptDetails(attemptId) {
@@ -273,7 +273,7 @@ function viewAttemptDetails(attemptId) {
         })
         .catch(error => {
             console.error('Error loading attempt details:', error);
-            alert('Failed to load attempt details');
+            showError('Failed to load attempt details');
         });
 }
 
@@ -283,7 +283,7 @@ function closeAttemptModal() {
 
 function downloadAttempt(attemptId) {
     // Implement download functionality
-    alert('Download functionality will be implemented here');
+    showInfo('Download functionality will be implemented here');
 }
 
 // Close modal when clicking outside

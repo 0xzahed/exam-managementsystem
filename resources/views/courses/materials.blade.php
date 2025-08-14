@@ -7,61 +7,7 @@
 @endsection
 
 @section('content')
-<!-- Flash Messages at Top -->
-@if(session('success'))
-<div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-    <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between animate-slide-down">
-        <div class="flex items-center">
-            <i class="fas fa-check-circle text-xl mr-3"></i>
-            <div>
-                <strong class="font-semibold">Success!</strong>
-                <p class="text-sm opacity-90">{{ session('success') }}</p>
-            </div>
-        </div>
-        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-</div>
-@endif
-
-@if(session('error'))
-<div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-    <div class="bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center justify-between animate-slide-down">
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-circle text-xl mr-3"></i>
-            <div>
-                <strong class="font-semibold">Error!</strong>
-                <p class="text-sm opacity-90">{{ session('error') }}</p>
-            </div>
-        </div>
-        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-</div>
-@endif
-
-@if($errors->any())
-<div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-    <div class="bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg animate-slide-down">
-        <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-triangle text-xl mr-3"></i>
-                <strong class="font-semibold">Validation Errors!</strong>
-            </div>
-            <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-white hover:text-gray-200">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <ul class="text-sm opacity-90 space-y-1">
-            @foreach($errors->all() as $error)
-                <li>• {{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-</div>
-@endif
+@include('components.flash')
 
 <div id="courseViewRoot" data-course-id="{{ $course->id }}" class="course-view max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Course Header -->
@@ -212,8 +158,8 @@
                                                 @endif
                                             </div>
                                             <div class="flex items-center space-x-2 ml-4">
-                                                <button onclick="toggleMaterialPrivacy({{ $material->id }}, {{ $material->is_private ? 'true' : 'false' }})"
-                                                    class="text-{{ $material->is_private ? 'red' : 'green' }}-400 hover:text-{{ $material->is_private ? 'red' : 'green' }}-600"
+                                                <button onclick="toggleMaterialPrivacy({{ $material->id }}, @json((bool)$material->is_private))"
+                                                    class="{{ $material->is_private ? 'text-red-400 hover:text-red-600' : 'text-green-400 hover:text-green-600' }}"
                                                     title="{{ $material->is_private ? 'Make Public' : 'Make Private' }}">
                                                     <i class="fas fa-{{ $material->is_private ? 'eye-slash' : 'eye' }}"></i>
                                                 </button>

@@ -38,30 +38,7 @@
                     </div>
                 </div>
 
-                <!-- Success/Error Messages -->
-                @if (session('success'))
-                <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
-                        <div>
-                            <h3 class="text-green-800 font-medium">Success!</h3>
-                            <p class="text-green-700 text-sm">{{ session('success') }}</p>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                @if (session('error'))
-                <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle text-red-500 text-xl mr-3"></i>
-                        <div>
-                            <h3 class="text-red-800 font-medium">Error</h3>
-                            <p class="text-red-700 text-sm">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                </div>
-                @endif
+                
 
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

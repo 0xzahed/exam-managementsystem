@@ -49,15 +49,13 @@ class StudentExamController extends Controller
             'enrolled_course_ids' => $enrolledCourseIds->toArray()
         ]);
         
-        // Get all exams for enrolled courses that are published and within their scheduled time
+        // Get all exams for enrolled courses that are published (show upcoming, active, and ended)
         $exams = collect([]);
         if ($enrolledCourseIds->isNotEmpty()) {
             $currentTime = Carbon::now();
             $exams = Exam::with(['course', 'questions', 'attempts'])
                 ->whereIn('course_id', $enrolledCourseIds)
                 ->where('status', 'published')
-                ->where('start_time', '<=', $currentTime) // Exam has started
-                ->where('end_time', '>=', $currentTime)   // Exam hasn't ended yet
                 ->orderBy('start_time', 'asc')
                 ->get();
                 

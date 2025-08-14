@@ -87,10 +87,7 @@
                 My Courses
             </a>
 
-            <a href="{{ route('student.courses.enroll') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.enroll') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
-                <i class="fas fa-plus-circle mr-3 text-lg"></i>
-                Enroll Course
-            </a>
+         
 
             <a href="{{ route('assignments.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('assignments.*') && !request()->routeIs('instructor.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-tasks mr-3 text-lg"></i>
@@ -119,7 +116,10 @@
 
             <!-- Divider -->
             <div class="border-t border-gray-200 my-4"></div>
-            
+               <a href="{{ route('student.courses.enroll') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.enroll') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
+                <i class="fas fa-plus-circle mr-3 text-lg"></i>
+                Enroll Course
+            </a>
             <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-download mr-3 text-lg"></i>
                 Resources
@@ -129,7 +129,7 @@
 
         <!-- Sidebar Footer -->
         <div class="px-4 py-4 border-t border-gray-200">
-            <a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
+            <a href="{{ route('help.index') }}" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-question-circle mr-3 text-lg"></i>
                 Help & Support
             </a>
