@@ -21,7 +21,9 @@ export default defineConfig({
                 'resources/js/pages/courses-enrollment.js',
                 'resources/js/pages/exams-index.js',
                 'resources/js/pages/exams/create.js',
-                'resources/js/pages/announcements-index.js'
+                'resources/js/pages/exams/take.js',
+                'resources/js/pages/announcements-index.js',
+                'resources/js/pages/profile-student-settings.js'
             ],
             refresh: true,
         }),

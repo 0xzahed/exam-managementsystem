@@ -50,9 +50,15 @@ Route::post('/resend-code', [EmailController::class, 'resendCode'])->name('resen
 // Google OAuth Routes
 Route::get('/auth/google/{role?}', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
-Route::get('/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('google.callback');
 Route::get('/auth/google/logout', [GoogleAuthController::class, 'logoutFromGoogle'])->name('auth.google.logout');
 Route::post('/auth/google/register', [GoogleAuthController::class, 'handleGoogleRegistration'])->name('auth.google.register');
+Route::get('/auth/google/activate', function() {
+    // Simple activation view that blocks redirect until user clicks Activate
+    if (!session()->has('google_user_data')) {
+        return redirect()->route('login')->with('error', 'Google session expired. Please try again.');
+    }
+    return view('auth.google-activate');
+})->name('auth.google.activate');
 Route::get('/verify-email/{token}', [GoogleAuthController::class, 'verifyEmail'])->name('email.verify');
 
 // Additional OAuth Routes
@@ -92,11 +98,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/profile/settings', [App\Http\Controllers\ProfileController::class, 'update'])
         ->middleware('auth')
         ->name('profile.update');
+        // Profile password change route
+        Route::get('/profile/password', [App\Http\Controllers\ProfileController::class, 'password'])->name('profile.password');
 
     // Course Routes for Instructors
 Route::middleware(['auth', 'role:instructor'])->group(function () {
     Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
     Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
     Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/manage', [CourseController::class, 'manage'])->name('courses.manage');
     // Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show'); // Removed - no matching view
@@ -280,6 +289,46 @@ Route::get('/test-session', function() {
 });
 
 // Debug route for exam issues
+Route::get('/debug-exam-creation', function() {
+    $user = Auth::user();
+    if (!$user) {
+        return response()->json(['error' => 'Not authenticated']);
+    }
+    
+    $data = [
+        'user_id' => $user->id,
+        'user_role' => $user->role,
+        'is_instructor' => $user->role === 'instructor',
+        'courses_count' => \App\Models\Course::where('instructor_id', $user->id)->count(),
+        'exams_count' => \App\Models\Exam::where('instructor_id', $user->id)->count(),
+    ];
+    
+    // Test exam creation
+    try {
+        $testExam = new \App\Models\Exam();
+        $testExam->title = 'Test Exam';
+        $testExam->description = 'Test Description';
+        $testExam->course_id = \App\Models\Course::where('instructor_id', $user->id)->first()?->id ?? 1;
+        $testExam->instructor_id = $user->id;
+        $testExam->duration_minutes = 60;
+        $testExam->start_time = now()->addHour();
+        $testExam->end_time = now()->addHours(2);
+        $testExam->status = 'draft';
+        $testExam->save();
+        
+        $data['test_exam_created'] = true;
+        $data['test_exam_id'] = $testExam->id;
+        
+        // Clean up test exam
+        $testExam->delete();
+        
+    } catch (\Exception $e) {
+        $data['test_exam_error'] = $e->getMessage();
+    }
+    
+    return response()->json($data);
+})->middleware('auth');
+
 Route::get('/debug-exams', function() {
     if (!Auth::check()) {
         return response()->json(['error' => 'Not authenticated']);

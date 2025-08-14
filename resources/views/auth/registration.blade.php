@@ -26,8 +26,8 @@
         }
 
         .input-focus:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
             border-color: rgba(255, 255, 255, 0.4) !important;
             background: rgba(255, 255, 255, 0.15) !important;
         }
@@ -48,16 +48,16 @@
         }
 
         .role-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
         }
 
         .role-card.selected {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
             color: white;
             border-color: #4f46e5 !important;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(79, 70, 229, 0.32);
         }
 
         .role-card.selected::before {

@@ -183,16 +183,56 @@ class StudentExamController extends Controller
             return response()->json(['error' => 'No active exam attempt found.'], 404);
         }
 
-        $request->validate([
-            'question_id' => 'required|exists:exam_questions,id',
-            'answer' => 'nullable|string',
-            'files.*' => 'file|max:10240'
-        ]);
-
         try {
+            // Support two modes:
+            // 1) Single-answer save (question_id + answer)
+            // 2) Bulk auto-save (answers: { [questionId]: { answer, type } })
+
+            if ($request->has('answers') && is_array($request->input('answers'))) {
+                $answers = $request->input('answers');
+                foreach ($answers as $questionId => $payload) {
+                    /** @var ExamQuestion|null $question */
+                    $question = ExamQuestion::find($questionId);
+                    if (!$question) {
+                        continue;
+                    }
+
+                    $answerText = is_array($payload) && array_key_exists('answer', $payload)
+                        ? $payload['answer']
+                        : (string) $payload;
+
+                    $answer = ExamAnswer::updateOrCreate(
+                        [
+                            'exam_attempt_id' => $attempt->id,
+                            'exam_question_id' => $questionId
+                        ],
+                        [
+                            'answer_text' => $answerText
+                        ]
+                    );
+
+                    if ($question->type === 'mcq' && $exam->auto_grade_mcq) {
+                        $isCorrect = $answerText === $question->correct_answer;
+                        $points = $isCorrect ? $question->points : 0;
+                        $answer->update([
+                            'is_correct' => $isCorrect,
+                            'points_awarded' => $points
+                        ]);
+                    }
+                }
+
+                return response()->json(['success' => true]);
+            }
+
+            // Validate and persist a single answer
+            $request->validate([
+                'question_id' => 'required|exists:exam_questions,id',
+                'answer' => 'nullable|string',
+                'files.*' => 'file|max:10240'
+            ]);
+
             $question = ExamQuestion::find($request->question_id);
-            
-            // Find or create answer
+
             $answer = ExamAnswer::updateOrCreate(
                 [
                     'exam_attempt_id' => $attempt->id,
@@ -204,9 +244,8 @@ class StudentExamController extends Controller
             );
 
             // Handle file uploads for file_upload questions
-            if ($question->type === 'file_upload' && $request->hasFile('files')) {
+            if ($question && $question->type === 'file_upload' && $request->hasFile('files')) {
                 $uploadedFiles = [];
-                
                 foreach ($request->file('files') as $file) {
                     $uploadResult = $this->googleDriveService->uploadExamSubmission(
                         $file,
@@ -214,20 +253,16 @@ class StudentExamController extends Controller
                         $exam->title,
                         Auth::user()->name
                     );
-                    
                     if ($uploadResult) {
                         $uploadedFiles[] = $uploadResult;
                     }
                 }
-                
                 $answer->update(['answer_files' => $uploadedFiles]);
             }
 
-            // Auto-grade MCQ questions
-            if ($question->type === 'mcq' && $exam->auto_grade_mcq) {
+            if ($question && $question->type === 'mcq' && $exam->auto_grade_mcq) {
                 $isCorrect = $request->answer === $question->correct_answer;
                 $points = $isCorrect ? $question->points : 0;
-                
                 $answer->update([
                     'is_correct' => $isCorrect,
                     'points_awarded' => $points
@@ -254,6 +289,9 @@ class StudentExamController extends Controller
             ->first();
             
         if (!$attempt) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'No active exam attempt found.'], 404);
+            }
             return redirect()->route('student.exams.index')
                 ->withErrors(['error' => 'No active exam attempt found.']);
         }
@@ -261,30 +299,66 @@ class StudentExamController extends Controller
         try {
             DB::beginTransaction();
 
-            // Calculate total score
+            // Persist any final answers sent from the client
+            if ($request->has('answers') && is_array($request->input('answers'))) {
+                $answers = $request->input('answers');
+                foreach ($answers as $questionId => $payload) {
+                    $question = ExamQuestion::find($questionId);
+                    if (!$question) continue;
+                    $answerText = is_array($payload) && array_key_exists('answer', $payload)
+                        ? $payload['answer']
+                        : (string) $payload;
+                    $answer = ExamAnswer::updateOrCreate(
+                        [
+                            'exam_attempt_id' => $attempt->id,
+                            'exam_question_id' => $questionId
+                        ],
+                        [
+                            'answer_text' => $answerText
+                        ]
+                    );
+                    if ($question->type === 'mcq' && $exam->auto_grade_mcq) {
+                        $isCorrect = $answerText === $question->correct_answer;
+                        $points = $isCorrect ? $question->points : 0;
+                        $answer->update([
+                            'is_correct' => $isCorrect,
+                            'points_awarded' => $points
+                        ]);
+                    }
+                }
+            }
+
+            // Calculate totals
             $totalScore = $attempt->examAnswers()
                 ->whereNotNull('points_awarded')
                 ->sum('points_awarded');
 
-            // Calculate time spent
             $timeSpentMinutes = $attempt->started_at->diffInMinutes(now());
 
-            // Update attempt
+            // Determine status
+            $status = $request->boolean('auto_submit') ? 'auto_submitted' : 'submitted';
+
             $attempt->update([
                 'submitted_at' => now(),
                 'time_spent_minutes' => $timeSpentMinutes,
                 'total_score' => $totalScore,
-                'status' => 'submitted'
+                'status' => $status
             ]);
 
             DB::commit();
 
-            return redirect()->route('student.exams.result', $exam)
-                ->with('success', 'Exam submitted successfully!');
+            $redirectUrl = route('student.exams.result', $exam);
+            if ($request->expectsJson()) {
+                return response()->json(['redirect_url' => $redirectUrl]);
+            }
+
+            return redirect($redirectUrl)->with('success', 'Exam submitted successfully!');
 
         } catch (\Exception $e) {
             DB::rollback();
-            
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Failed to submit exam: ' . $e->getMessage()], 500);
+            }
             return back()->withErrors(['error' => 'Failed to submit exam: ' . $e->getMessage()]);
         }
     }
@@ -328,15 +402,15 @@ class StudentExamController extends Controller
             return response()->json(['error' => 'No active attempt found.'], 404);
         }
 
-        $remainingMinutes = $attempt->getRemainingTime();
+        $remainingSeconds = $attempt->getRemainingSeconds();
         
         // Auto-submit if time expired
-        if ($remainingMinutes <= 0) {
+        if ($remainingSeconds <= 0) {
             $this->autoSubmitExam($attempt);
-            return response()->json(['expired' => true]);
+            return response()->json(['expired' => true, 'remaining_seconds' => 0]);
         }
 
-        return response()->json(['remaining_minutes' => $remainingMinutes]);
+        return response()->json(['remaining_seconds' => $remainingSeconds]);
     }
 
     /**

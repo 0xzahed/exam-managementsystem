@@ -50,7 +50,8 @@
         .shape {
             position: absolute;
             opacity: 0.05;
-            animation: float 8s ease-in-out infinite;
+            /* Softer, slower animation */
+            animation: float 12s ease-in-out infinite;
         }
 
         .shape:nth-child(1) {
@@ -72,15 +73,8 @@
         }
 
         @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-10px) rotate(90deg);
-            }
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(20deg); }
         }
     </style>
 </head>

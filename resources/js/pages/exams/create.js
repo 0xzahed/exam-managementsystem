@@ -226,6 +226,13 @@ document.addEventListener('DOMContentLoaded', function() {
         examForm.addEventListener('submit', function(e) {
             console.log('Form submit triggered');
             
+            // Add debugging
+            console.log('Form data being submitted:');
+            const formData = new FormData(examForm);
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
             // Check if basic validation passes
             const title = document.getElementById('title').value.trim();
             const courseId = document.getElementById('course_id').value;

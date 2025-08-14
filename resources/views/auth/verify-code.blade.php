@@ -39,7 +39,7 @@
             </div>
         @endif
 
-        <!-- Success Messages -->
+        <!-- Success Messages
         @if (session('success'))
             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div class="flex items-center">
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </div>
-        @endif
+        @endif -->
 
         <form class="mt-8 space-y-6" action="{{ route('verify.code.submit') }}" method="POST">
             @csrf

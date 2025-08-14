@@ -15,36 +15,84 @@ class ExamTaker {
     init() {
         this.calculateTimeRemaining();
         this.startTimer();
+        this.startServerSync();
         this.startAutoSave();
         this.bindEvents();
         this.loadExistingAnswers();
         this.setupNavigationWarning();
+        
+        // Debug logging
+        console.log('ExamTaker initialized with config:', this.examConfig);
+        console.log('Initial time remaining:', this.timeRemaining);
     }
 
     calculateTimeRemaining() {
+        if (!this.examConfig || !this.examConfig.startTime) {
+            console.error('Missing exam config or start time');
+            return;
+        }
+        
         const startTime = new Date(this.examConfig.startTime);
         const now = new Date();
-        const elapsedMinutes = Math.floor((now - startTime) / (1000 * 60));
-        this.timeRemaining = Math.max(0, this.examConfig.durationMinutes - elapsedMinutes);
+        const elapsedSeconds = Math.floor((now - startTime) / 1000);
+        this.timeRemaining = Math.max(0, (this.examConfig.durationMinutes * 60) - elapsedSeconds);
+        
+        console.log('Time calculation:', {
+            startTime: startTime.toISOString(),
+            now: now.toISOString(),
+            elapsedSeconds: elapsedSeconds,
+            durationMinutes: this.examConfig.durationMinutes,
+            timeRemaining: this.timeRemaining
+        });
     }
 
     startTimer() {
         this.updateTimerDisplay();
         
         this.timer = setInterval(() => {
-            this.timeRemaining--;
-            this.updateTimerDisplay();
-            
-            // Auto-submit when time is up
-            if (this.timeRemaining <= 0) {
-                this.autoSubmitExam();
-            }
-            
-            // Warning when 5 minutes left
-            if (this.timeRemaining === 5 * 60) {
-                this.showTimeWarning();
+            if (this.timeRemaining > 0) {
+                this.timeRemaining--;
+                this.updateTimerDisplay();
+                
+                // Auto-submit when time is up
+                if (this.timeRemaining <= 0) {
+                    this.autoSubmitExam();
+                }
+                
+                // Warning when 5 minutes left
+                if (this.timeRemaining === 5 * 60) {
+                    this.showTimeWarning();
+                }
             }
         }, 1000);
+    }
+
+    // Periodically sync with server so refresh or tab close doesn't reset timer
+    startServerSync() {
+        // Poll every 30s for accurate remaining time from server
+        this.serverSyncTimer = setInterval(async () => {
+            try {
+                const url = this.examConfig.routes.getTime;
+                const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (data.expired) {
+                    this.timeRemaining = 0;
+                    this.updateTimerDisplay();
+                    this.autoSubmitExam();
+                    return;
+                }
+                if (typeof data.remaining_seconds === 'number') {
+                    // Trust server time; only update if client drift > 3s
+                    if (Math.abs(this.timeRemaining - data.remaining_seconds) > 3) {
+                        this.timeRemaining = data.remaining_seconds;
+                        this.updateTimerDisplay();
+                    }
+                }
+            } catch (e) {
+                // Ignore transient errors
+            }
+        }, 30000);
     }
 
     updateTimerDisplay() {
@@ -102,23 +150,45 @@ class ExamTaker {
         // Answer change events
         this.bindAnswerEvents();
         
-        // Submit button events
-        document.getElementById('submitExamBtn')?.addEventListener('click', () => {
-            this.showSubmitConfirmation();
-        });
+        // Submit button events - ensure proper binding
+        const submitBtn = document.getElementById('submitExamBtn');
+        const finalSubmitBtn = document.getElementById('finalSubmit');
         
-        document.getElementById('finalSubmit')?.addEventListener('click', () => {
-            this.showSubmitConfirmation();
-        });
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Submit button clicked');
+                this.showSubmitConfirmation();
+            });
+        }
+        
+        if (finalSubmitBtn) {
+            finalSubmitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Final submit button clicked');
+                this.showSubmitConfirmation();
+            });
+        }
         
         // Submit confirmation modal events
-        document.getElementById('confirmSubmit')?.addEventListener('click', () => {
-            this.submitExam();
-        });
+        const confirmSubmitBtn = document.getElementById('confirmSubmit');
+        const cancelSubmitBtn = document.getElementById('cancelSubmit');
         
-        document.getElementById('cancelSubmit')?.addEventListener('click', () => {
-            this.hideSubmitConfirmation();
-        });
+        if (confirmSubmitBtn) {
+            confirmSubmitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Confirm submit clicked');
+                this.submitExam();
+            });
+        }
+        
+        if (cancelSubmitBtn) {
+            cancelSubmitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Cancel submit clicked');
+                this.hideSubmitConfirmation();
+            });
+        }
         
         // Question navigation
         document.querySelectorAll('.question-nav-btn').forEach(btn => {
@@ -128,9 +198,13 @@ class ExamTaker {
         });
         
         // Review answers button
-        document.getElementById('reviewAnswers')?.addEventListener('click', () => {
-            this.reviewAnswers();
-        });
+        const reviewBtn = document.getElementById('reviewAnswers');
+        if (reviewBtn) {
+            reviewBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.reviewAnswers();
+            });
+        }
     }
 
     bindAnswerEvents() {
@@ -241,6 +315,7 @@ class ExamTaker {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
@@ -387,21 +462,31 @@ class ExamTaker {
     async submitExam() {
         if (this.isSubmitting) return;
         
+        console.log('Submitting exam...');
         this.isSubmitting = true;
         this.hideSubmitConfirmation();
         
         // Clear timers
         clearInterval(this.timer);
         clearInterval(this.autoSaveTimer);
+        clearInterval(this.serverSyncTimer);
         
         // Show submission overlay
         this.showSubmissionOverlay();
         
         try {
+            console.log('Sending submit request to:', this.examConfig.routes.submit);
+            console.log('Submit data:', {
+                answers: this.answers,
+                attempt_id: this.examConfig.attemptId,
+                time_spent: this.examConfig.durationMinutes - this.timeRemaining
+            });
+            
             const response = await fetch(this.examConfig.routes.submit, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
@@ -411,25 +496,40 @@ class ExamTaker {
                 })
             });
             
+            console.log('Submit response status:', response.status);
+            
             if (response.ok) {
                 const result = await response.json();
-                window.location.href = result.redirect_url;
+                console.log('Submit result:', result);
+                
+                if (result.redirect_url) {
+                    console.log('Redirecting to:', result.redirect_url);
+                    window.location.href = result.redirect_url;
+                } else {
+                    console.error('No redirect URL in response');
+                    throw new Error('No redirect URL received');
+                }
             } else {
-                throw new Error('Submission failed');
+                const errorText = await response.text();
+                console.error('Submit failed with status:', response.status, 'Error:', errorText);
+                throw new Error(`Submission failed: ${response.status}`);
             }
         } catch (error) {
             console.error('Submission error:', error);
-            showError('Failed to submit exam. Please try again.');
+            alert('Failed to submit exam. Please try again.');
             this.isSubmitting = false;
             this.hideSubmissionOverlay();
             this.startTimer();
             this.startAutoSave();
+            this.startServerSync();
         }
     }
 
     async autoSubmitExam() {
+        console.log('Auto-submitting exam due to time expiry');
         clearInterval(this.timer);
         clearInterval(this.autoSaveTimer);
+        clearInterval(this.serverSyncTimer);
         
         this.showSubmissionOverlay('Time is up! Auto-submitting your exam...');
         
@@ -438,6 +538,7 @@ class ExamTaker {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
@@ -450,10 +551,20 @@ class ExamTaker {
             
             if (response.ok) {
                 const result = await response.json();
-                window.location.href = result.redirect_url;
+                if (result.redirect_url) {
+                    window.location.href = result.redirect_url;
+                }
+            } else {
+                console.error('Auto-submit failed:', response.status);
+                // Fallback: redirect to exam result page
+                const examId = this.examConfig.examId;
+                window.location.href = `/student/exams/${examId}/result`;
             }
         } catch (error) {
             console.error('Auto-submit error:', error);
+            // Fallback: redirect to exam result page
+            const examId = this.examConfig.examId;
+            window.location.href = `/student/exams/${examId}/result`;
         }
     }
 
@@ -489,33 +600,97 @@ class ExamTaker {
             }
         });
         
-        // Show custom navigation warning
-        const warningModal = document.getElementById('navigationWarning');
-        const stayBtn = document.getElementById('stayOnPage');
-        const leaveBtn = document.getElementById('leavePage');
+        // Show custom navigation warning popup
+        this.setupNavigationWarningPopup();
         
+        // Intercept all navigation attempts
+        this.interceptNavigation();
+    }
+    
+    setupNavigationWarningPopup() {
+        // Create navigation warning popup if it doesn't exist
+        if (!document.getElementById('navigationWarningPopup')) {
+            const popup = document.createElement('div');
+            popup.id = 'navigationWarningPopup';
+            popup.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 hidden';
+            popup.innerHTML = `
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <div class="flex items-center mb-4">
+                            <svg class="w-8 h-8 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            <h3 class="text-lg font-semibold text-gray-900">Navigation Warning</h3>
+                        </div>
+                        <p class="text-gray-600 mb-6">
+                            Are you sure you want to leave this exam? Your exam is in progress and leaving may cause data loss.
+                        </p>
+                        <div class="flex space-x-3">
+                            <button id="stayOnExam" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Stay on Exam
+                            </button>
+                            <button id="leaveExam" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                Leave Anyway
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+            
+            // Bind popup events
+            document.getElementById('stayOnExam').addEventListener('click', () => {
+                this.hideNavigationWarning();
+            });
+            
+            document.getElementById('leaveExam').addEventListener('click', () => {
+                this.hideNavigationWarning();
+                if (this.pendingNavigation) {
+                    window.location.href = this.pendingNavigation;
+                }
+            });
+        }
+    }
+    
+    interceptNavigation() {
         let pendingNavigation = null;
         
-        // Intercept navigation attempts
+        // Intercept link clicks
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
-            if (link && link.href && !link.href.includes('#') && this.hasUnsavedChanges && !this.isSubmitting) {
+            if (link && link.href && !link.href.includes('#') && !link.href.includes('javascript:')) {
                 e.preventDefault();
                 pendingNavigation = link.href;
-                warningModal?.classList.remove('hidden');
+                this.showNavigationWarning();
             }
         });
         
-        stayBtn?.addEventListener('click', () => {
-            warningModal?.classList.add('hidden');
-            pendingNavigation = null;
-        });
-        
-        leaveBtn?.addEventListener('click', () => {
-            if (pendingNavigation) {
-                window.location.href = pendingNavigation;
+        // Intercept form submissions
+        document.addEventListener('submit', (e) => {
+            if (e.target !== document.getElementById('examForm')) {
+                e.preventDefault();
+                pendingNavigation = e.target.action;
+                this.showNavigationWarning();
             }
         });
+        
+        // Store pending navigation
+        this.pendingNavigation = pendingNavigation;
+    }
+    
+    showNavigationWarning() {
+        const popup = document.getElementById('navigationWarningPopup');
+        if (popup) {
+            popup.classList.remove('hidden');
+        }
+    }
+    
+    hideNavigationWarning() {
+        const popup = document.getElementById('navigationWarningPopup');
+        if (popup) {
+            popup.classList.add('hidden');
+        }
+        this.pendingNavigation = null;
     }
 
     loadExistingAnswers() {

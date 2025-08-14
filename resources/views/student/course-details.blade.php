@@ -43,8 +43,8 @@
                 </h3>
                 
                 @php
-                    $materialSections = $course->materials->groupBy('section');
-                    $totalMaterials = $course->materials->count();
+                    $materialSections = $course->courseMaterials->groupBy('section');
+                    $totalMaterials = $course->courseMaterials->count();
                 @endphp
 
                 @if($totalMaterials > 0)
@@ -88,7 +88,7 @@
             <!-- Course Sections -->
             <div class="space-y-6">
                 @php
-                    $materialSections = $course->materials->groupBy('section');
+                    $materialSections = $course->courseMaterials->groupBy('section');
                 @endphp
 
                 @forelse($materialSections as $sectionName => $materials)
@@ -245,7 +245,7 @@
     }
 </script>
 
-@if($course->materials && $course->materials->count() > 0)
+@if($course->courseMaterials && $course->courseMaterials->count() > 0)
 <script>
     // Custom JavaScript for course details interactivity
     document.addEventListener('DOMContentLoaded', function() {

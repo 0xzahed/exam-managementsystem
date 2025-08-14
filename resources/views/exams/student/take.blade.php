@@ -1,76 +1,39 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Take Exam - ' . $exam->title)
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
-    <!-- Fixed Header with Timer -->
-    <div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+
+    <!-- Main Content -->
+    <div class="py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Page Header with Timer and Actions -->
+            <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center">
                     <h1 class="text-lg font-semibold text-gray-900">{{ $exam->title }}</h1>
                     <span class="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                         {{ $exam->course->title }}
                     </span>
                 </div>
-                
-                <!-- Timer Display -->
                 <div class="flex items-center space-x-6">
                     <div class="flex items-center space-x-2">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span class="text-sm text-gray-600">Time Remaining:</span>
-                        <div id="timer" class="font-mono text-lg font-bold text-red-600">
+                        <div id="timer" class="font-mono text-lg font-bold text-red-600" aria-live="polite">
                             --:--:--
                         </div>
                     </div>
-                    
-                    <!-- Auto-save indicator -->
                     <div id="autoSaveStatus" class="text-sm text-gray-500">
                         <span class="saving hidden">Saving...</span>
                         <span class="saved">All changes saved</span>
                     </div>
-                    
-                    <!-- Submit Button -->
-                    <button type="button" id="submitExamBtn" 
-                            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                        Submit Exam
-                    </button>
+                    <button type="button" id="submitExamBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">Submit Exam</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Navigation Warning Modal -->
-    <div id="navigationWarning" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-                <div class="flex items-center mb-4">
-                    <svg class="w-8 h-8 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
-                    </svg>
-                    <h3 class="text-lg font-semibold text-gray-900">Navigation Warning</h3>
-                </div>
-                <p class="text-gray-600 mb-6">
-                    Are you sure you want to leave this page? Your exam is in progress and leaving may cause data loss.
-                </p>
-                <div class="flex space-x-3">
-                    <button id="stayOnPage" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Stay on Page
-                    </button>
-                    <button id="leavePage" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                        Leave Anyway
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="pt-24 pb-8">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Exam Info Card -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 p-6">
@@ -330,21 +293,98 @@
 @endsection
 
 @push('scripts')
+@php
+    $examConfig = [
+        'examId' => $exam->id,
+        'attemptId' => $attempt->id,
+        'durationMinutes' => $exam->duration_minutes,
+        'startTime' => $attempt->started_at->toIso8601String(),
+        'totalQuestions' => $exam->questions->count(),
+        'autoSaveInterval' => 30000,
+        'routes' => [
+            'saveAnswer' => route('student.exams.save-answer', $exam),
+            'submit' => route('student.exams.submit', $exam),
+            'getTime' => route('student.exams.time', $exam),
+        ],
+    ];
+@endphp
+
+<div id="examConfigData" data-config='@json($examConfig)'></div>
+
 <script>
-    // Pass exam data to JavaScript
-    window.examConfig = {
-        examId: {{ $exam->id }},
-        attemptId: {{ $attempt->id }},
-        durationMinutes: {{ $exam->duration_minutes }},
-        startTime: '{{ $attempt->started_at->toISOString() }}',
-        totalQuestions: {{ $exam->questions->count() }},
-        autoSaveInterval: 30000, // 30 seconds
-        routes: {
-            saveAnswer: '{{ route("student.exams.save-answer", $exam) }}',
-            submit: '{{ route("student.exams.submit", $exam) }}',
-            getTime: '{{ route("student.exams.time", $exam) }}'
+    // Hydrate examConfig from data attribute to keep inline JS linter-friendly
+    (function() {
+        var cfgEl = document.getElementById('examConfigData');
+        if (cfgEl) {
+            try { 
+                window.examConfig = JSON.parse(cfgEl.getAttribute('data-config')); 
+                console.log('Exam config loaded:', window.examConfig);
+            } catch (e) { 
+                console.error('Failed to parse exam config:', e);
+                window.examConfig = null; 
+            }
         }
-    };
+    })();
+
+    // Immediate timer initialization as fallback
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing timer...');
+        const timerElement = document.getElementById('timer');
+        
+        if (timerElement && window.examConfig) {
+            console.log('Timer element and config found, starting timer...');
+            
+            // Calculate initial time remaining
+            const startTime = new Date(window.examConfig.startTime);
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now - startTime) / 1000);
+            let timeRemaining = Math.max(0, window.examConfig.durationMinutes * 60 - elapsedSeconds);
+            
+            console.log('Timer Debug:', {
+                startTime: startTime.toISOString(),
+                now: now.toISOString(),
+                elapsedSeconds: elapsedSeconds,
+                durationMinutes: window.examConfig.durationMinutes,
+                timeRemaining: timeRemaining
+            });
+            
+            // Update timer display immediately
+            function updateTimer() {
+                if (timeRemaining <= 0) {
+                    timerElement.textContent = '00:00:00';
+                    timerElement.className = 'font-mono text-lg font-bold text-red-600';
+                    return;
+                }
+                
+                const hours = Math.floor(timeRemaining / 3600);
+                const minutes = Math.floor((timeRemaining % 3600) / 60);
+                const seconds = timeRemaining % 60;
+                
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timerElement.textContent = timeString;
+                
+                // Change color based on time remaining
+                if (timeRemaining <= 5 * 60) { // 5 minutes
+                    timerElement.className = 'font-mono text-lg font-bold text-red-600';
+                } else if (timeRemaining <= 15 * 60) { // 15 minutes
+                    timerElement.className = 'font-mono text-lg font-bold text-yellow-600';
+                } else {
+                    timerElement.className = 'font-mono text-lg font-bold text-green-600';
+                }
+                
+                timeRemaining--;
+            }
+            
+            // Start timer immediately
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        } else {
+            console.error('Timer element or exam config not found:', {
+                timerElement: !!timerElement,
+                examConfig: !!window.examConfig
+            });
+        }
+    });
 </script>
-<script src="{{ asset('js/pages/exams/take.js') }}"></script>
+@vite('resources/js/pages/exams/take.js')
 @endpush

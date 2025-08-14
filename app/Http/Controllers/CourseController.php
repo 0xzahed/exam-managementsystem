@@ -15,6 +15,16 @@ class CourseController extends Controller
         return view('courses.create');
     }
 
+    public function edit(Course $course)
+    {
+        // Check if user is instructor of this course
+        if ($course->instructor_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to this course.');
+        }
+
+        return view('courses.edit', compact('course'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -93,8 +103,13 @@ class CourseController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'code' => 'required|string|max:10|unique:courses,code,' . $course->id,
-            'prerequisites' => 'nullable|string',
+            'description' => 'required|string',
+            'credits' => 'required|integer|min:1|max:4',
+            'department' => 'required|string',
+            'semester_type' => 'required|in:Spring,Summer,Fall',
+            'year' => 'required|integer|min:2024|max:2030',
             'max_students' => 'required|integer|min:1|max:200',
+            'prerequisites' => 'nullable|string',
             'password' => 'required|string|min:4',
         ]);
 
@@ -102,8 +117,13 @@ class CourseController extends Controller
             $course->update([
                 'title' => $request->title,
                 'code' => strtoupper($request->code),
-                'prerequisites' => $request->prerequisites,
+                'description' => $request->description,
+                'credits' => $request->credits,
+                'department' => $request->department,
+                'semester_type' => $request->semester_type,
+                'year' => $request->year,
                 'max_students' => $request->max_students,
+                'prerequisites' => $request->prerequisites,
                 'password' => $request->password,
             ]);
 
@@ -156,15 +176,15 @@ class CourseController extends Controller
         }
 
         $students = $course->students()
-            ->select('users.id', 'users.name', 'users.email', 'users.student_id', 'course_enrollments.enrolled_at as enrolled_at')
-            ->orderBy('users.name')
+            ->select('users.id', 'users.first_name', 'users.last_name', 'users.email', 'course_enrollments.enrolled_at as enrolled_at')
+            ->orderBy('users.first_name')
             ->get()
             ->map(function ($student, $index) {
                 return [
                     'id' => $student->id,
                     'serial' => $index + 1,
-                    'name' => $student->name,
-                    'student_id' => $student->student_id ?? 'N/A',
+                    'name' => $student->first_name . ' ' . $student->last_name,
+                    'student_id' => 'STU-' . str_pad($student->id, 4, '0', STR_PAD_LEFT),
                     'email' => $student->email,
                     'enrolled_at' => $student->enrolled_at
                         ? Carbon::parse($student->enrolled_at)->format('M d, Y')

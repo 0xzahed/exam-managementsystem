@@ -32,6 +32,45 @@
         <form action="{{ route('instructor.exams.store') }}" method="POST" enctype="multipart/form-data" id="examForm">
             @csrf
             
+            <!-- Error Display -->
+            @if ($errors->any())
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">
+                                There were {{ count($errors) }} error(s) with your submission:
+                            </h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Error</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                {{ session('error') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
             <!-- Basic Information Card -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
                 <div class="p-6 border-b border-gray-200">

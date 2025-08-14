@@ -87,9 +87,15 @@ class GoogleAuthController extends Controller
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
-                // Check if account is verified
-                if (!$user->email_verified_at) {
-                    return redirect()->route('login')->with('error', 'Your account is not verified. Please check your email for verification link.');
+                // Enforce verification (both flags to be safe with the rest of the app)
+                if (!$user->is_verified || !$user->email_verified_at) {
+                    // Re-send verification link for convenience
+                    try {
+                        $this->sendVerificationEmail($user);
+                    } catch (\Exception $e) {
+                        Log::warning('Resend verification email failed: ' . $e->getMessage());
+                    }
+                    return redirect()->route('login')->with('error', 'Your account is not verified. A new verification link has been sent to your email.');
                 }
 
                 // Check if role matches
@@ -101,7 +107,7 @@ class GoogleAuthController extends Controller
                 Auth::login($user, true);
                 return RoleRedirectHelper::redirectToRoleDashboard($user->role);
             } else {
-                // User doesn't exist - redirect to registration with error
+                // Defer account creation until user explicitly activates
                 session([
                     'google_user_data' => [
                         'name' => $googleUser->getName(),
@@ -110,14 +116,11 @@ class GoogleAuthController extends Controller
                         'email' => $googleUser->getEmail(),
                         'google_id' => $googleUser->getId(),
                         'avatar' => $googleUser->getPicture(),
-                        'role' => $role
+                        'role' => $role,
                     ]
                 ]);
 
-                return redirect()->route('login')->with([
-                    'error' => 'Account not found. Please register first to create your account.',
-                    'redirect_to_register' => true
-                ]);
+                return redirect()->route('auth.google.activate');
             }
 
         } catch (\Exception $e) {
@@ -141,7 +144,7 @@ class GoogleAuthController extends Controller
     // Handle Google Registration
     public function handleGoogleRegistration(Request $request)
     {
-        // Get Google user data from session
+        // Get Google user data from session (must exist due to activation page)
         $googleUserData = session('google_user_data');
         
         if (!$googleUserData) {
@@ -149,7 +152,7 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            // Check if user already exists
+            // Check if user already exists (race condition safe)
             $existingUser = User::where('email', $googleUserData['email'])->first();
             if ($existingUser) {
                 return redirect()->route('login')->with('error', 'User already exists. Please login instead.');
@@ -217,9 +220,10 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->with('error', 'Invalid or expired verification link.');
         }
 
-        // Mark email as verified
+        // Mark email as verified (set both flags used across app)
         $user->update([
             'email_verified_at' => now(),
+            'is_verified' => true,
             'verification_token' => null,
             'verification_expires_at' => null
         ]);

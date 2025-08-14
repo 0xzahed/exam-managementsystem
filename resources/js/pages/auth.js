@@ -1,3 +1,111 @@
+document.addEventListener('DOMContentLoaded', () => {
+  // Login form validation
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const roleInput = document.getElementById('roleInput');
+
+    // role tab switching
+    document.querySelectorAll('.role-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        roleInput.value = tab.dataset.role;
+      });
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+      let hasError = false;
+
+      // domain-enforced email
+      const email = emailInput.value.trim();
+      const validDomain = /@diu\.edu\.bd$/i.test(email);
+      if (!validDomain) {
+        hasError = true;
+        document.getElementById('emailError')?.classList.remove('hidden');
+        emailInput.classList.add('ring-2', 'ring-red-400');
+      } else {
+        document.getElementById('emailError')?.classList.add('hidden');
+        emailInput.classList.remove('ring-2', 'ring-red-400');
+      }
+
+      if (!passwordInput.value) {
+        hasError = true;
+        document.getElementById('passwordError')?.classList.remove('hidden');
+      } else {
+        document.getElementById('passwordError')?.classList.add('hidden');
+      }
+
+      if (hasError) e.preventDefault();
+    });
+  }
+
+  // Registration form validation
+  const regForm = document.getElementById('registrationForm');
+  if (regForm) {
+    const email = document.getElementById('email');
+    const pwd = document.getElementById('password');
+    const pwd2 = document.getElementById('password_confirmation');
+    const roleHidden = document.getElementById('selectedRole');
+    const roleCards = document.querySelectorAll('.role-card');
+    const idField = document.getElementById('idField');
+    const idLabel = document.getElementById('idLabel');
+
+    roleCards.forEach(card => {
+      card.addEventListener('click', () => {
+        roleCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        roleHidden.value = card.dataset.role;
+        // toggle ID field label depending on role
+        idField.classList.remove('hidden');
+        idLabel.textContent = card.dataset.role === 'student' ? 'Student ID' : 'Employee ID';
+      });
+    });
+
+    regForm.addEventListener('submit', (e) => {
+      let hasError = false;
+
+      // require role selection
+      if (!roleHidden.value) {
+        hasError = true;
+        document.getElementById('roleError')?.classList.remove('hidden');
+      } else {
+        document.getElementById('roleError')?.classList.add('hidden');
+      }
+
+      // email check
+      if (!/@diu\.edu\.bd$/i.test(email.value.trim())) {
+        hasError = true;
+        email.classList.add('ring-2', 'ring-red-400');
+      } else {
+        email.classList.remove('ring-2', 'ring-red-400');
+      }
+
+      // password strength and confirm
+      if (pwd.value.length < 8) {
+        hasError = true;
+        alert('Password must be at least 8 characters.');
+      }
+      if (pwd.value !== pwd2.value) {
+        hasError = true;
+        alert('Password confirmation does not match.');
+      }
+
+      // ID must be present once a role picked
+      const userId = document.getElementById('userId');
+      if (roleHidden.value && !userId.value.trim()) {
+        hasError = true;
+        userId.classList.add('ring-2', 'ring-red-400');
+      } else {
+        userId?.classList.remove('ring-2', 'ring-red-400');
+      }
+
+      if (hasError) e.preventDefault();
+    });
+  }
+});
+
 // Authentication page functionality - Login & Registration
 document.addEventListener('DOMContentLoaded', function() {
     

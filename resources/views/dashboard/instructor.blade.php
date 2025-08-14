@@ -134,10 +134,7 @@
                                 <div class="p-4 text-center text-gray-500">
                                     <i class="mb-2 text-3xl text-gray-400 fas fa-chalkboard-teacher"></i>
                                     <p class="font-medium">No courses available</p>
-                                    <p class="text-sm">Create a new course to get started.</p>
-                                    <a href="{{ route('courses.create') }}" class="inline-flex items-center px-4 py-2 mt-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 ">
-                                        <i class="fas fa-plus mr-2"></i>Create Course
-                                    </a>
+
                                 </div>
                                 @endif
                             </div>

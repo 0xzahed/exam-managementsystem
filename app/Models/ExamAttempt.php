@@ -67,6 +67,33 @@ class ExamAttempt extends Model
     {
         return in_array($this->status, ['submitted', 'auto_submitted', 'graded']);
     }
+    
+    // Accessor for is_submitted (used in views)
+    public function getIsSubmittedAttribute()
+    {
+        return $this->isSubmitted();
+    }
+    
+    // Accessor for score percentage
+    public function getScoreAttribute()
+    {
+        if ($this->max_score && $this->total_score !== null) {
+            return round(($this->total_score / $this->max_score) * 100, 1);
+        }
+        return null;
+    }
+    
+    // Accessor for marks_obtained (alias for total_score)
+    public function getMarksObtainedAttribute()
+    {
+        return $this->total_score;
+    }
+    
+    // Accessor for completed_at (use submitted_at)
+    public function getCompletedAtAttribute()
+    {
+        return $this->submitted_at;
+    }
 
     public function getRemainingTime()
     {
@@ -79,5 +106,21 @@ class ExamAttempt extends Model
         $remainingMinutes = $examDuration - $elapsedMinutes;
 
         return max(0, $remainingMinutes);
+    }
+
+    /**
+     * Get remaining time in seconds (authoritative server-side countdown)
+     */
+    public function getRemainingSeconds()
+    {
+        if (!$this->isInProgress()) {
+            return 0;
+        }
+
+        $examDurationSeconds = (int) $this->exam->duration_minutes * 60;
+        $elapsedSeconds = $this->started_at->diffInSeconds(now());
+        $remainingSeconds = $examDurationSeconds - $elapsedSeconds;
+
+        return max(0, $remainingSeconds);
     }
 }

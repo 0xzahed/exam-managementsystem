@@ -19,16 +19,44 @@ window.closeCreateModal = closeCreateModal;
 function viewStudents(courseId) {
     currentCourseId = courseId;
     const modal = document.getElementById('studentsModal');
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    
+    // Add animation class
+    modal.style.opacity = '0';
+    modal.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.transform = 'scale(1)';
+        modal.style.transition = 'all 0.3s ease-out';
+    }, 10);
     
     loadStudents(courseId);
 }
 
 function closeStudentsModal() {
     const modal = document.getElementById('studentsModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    // Add exit animation
+    modal.style.opacity = '0';
+    modal.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modal.style.opacity = '';
+        modal.style.transform = '';
+        modal.style.transition = '';
+    }, 200);
+    
     currentCourseId = null;
     studentsData = [];
 }
@@ -256,6 +284,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Modal outside click to close
+    const studentsModal = document.getElementById('studentsModal');
+    if (studentsModal) {
+        studentsModal.addEventListener('click', function(e) {
+            if (e.target === studentsModal) {
+                closeStudentsModal();
+            }
+        });
+    }
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('studentsModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeStudentsModal();
+            }
+        }
+    });
     
     // Initialize courses data if available
     try {

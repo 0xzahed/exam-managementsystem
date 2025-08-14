@@ -97,9 +97,7 @@
                             <div class="p-6 border-b border-gray-200">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">My Courses ({{ $totalEnrolledCourses }})</h3>
-                                    <a href="{{ route('student.courses.enroll') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                        <i class="fas fa-plus mr-1"></i>Enroll More
-                                    </a>
+    
                                 </div>
                             </div>
                             <div class="p-6">
@@ -115,19 +113,12 @@
                                                 <p class="text-xs text-gray-500">Enrolled: {{ $course->pivot->enrolled_at ? \Carbon\Carbon::parse($course->pivot->enrolled_at)->format('M d, Y') : 'N/A' }}</p>
                                             </div>
                                         </div>
-                                        <div class="flex gap-2">
-                                            <a href="{{ route('course.details', $course->id) }}" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 ">
-                                                <i class="fas fa-eye mr-1"></i>View
-                                            </a>
-                                        </div>
+ 
                                     </div>
                                 @empty
                                     <div class="text-center py-8">
                                         <i class="fas fa-book text-gray-400 text-3xl mb-3"></i>
                                         <p class="text-gray-500 text-sm mb-2">No courses enrolled yet</p>
-                                        <a href="{{ route('student.courses.enroll') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium ">
-                                            <i class="fas fa-plus mr-2"></i>Browse Courses
-                                        </a>
                                     </div>
                                 @endforelse
                             </div>
@@ -139,7 +130,7 @@
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">Upcoming Assignments</h3>
                                     <a href="{{ route('assignments.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                        <i class="fas fa-eye mr-1"></i>View All
+
                                     </a>
                                 </div>
                             </div>
@@ -206,7 +197,7 @@
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">Recent Announcements</h3>
                                     <a href="{{ route('student.announcements.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                                        <i class="fas fa-eye mr-1"></i>View All
+
                                     </a>
                                 </div>
                             </div>
@@ -247,7 +238,7 @@
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">Upcoming Exams</h3>
                                     <a href="{{ route('student.exams.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                        <i class="fas fa-eye mr-1"></i>View All
+
                                     </a>
                                 </div>
                             </div>
@@ -291,7 +282,6 @@
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">Recent Grades</h3>
                                     <a href="{{ route('student.grades.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                        <i class="fas fa-eye mr-1"></i>View All
                                     </a>
                                 </div>
                             </div>

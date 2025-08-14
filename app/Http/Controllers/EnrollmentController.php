@@ -222,7 +222,7 @@ class EnrollmentController extends Controller
         
         try {
             // Load course with all related data
-            $course->load(['instructor', 'materials', 'assignments']);
+            $course->load(['instructor', 'courseMaterials', 'assignments']);
             
             // Get assignments for this course
             $assignments = $course->assignments()->orderBy('due_date', 'asc')->get();

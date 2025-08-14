@@ -174,7 +174,7 @@
                     <a href="mailto:support@insightedu.com" class="btn-hover bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold">
                         <i class="fas fa-envelope mr-2"></i>Contact Support
                     </a>
-                    <a href="{{ route('help') }}" class="btn-hover bg-transparent border-2 border-white text-white hover:bg-white hover:text-purple-600 px-6 py-3 rounded-lg font-semibold">
+                    <a href="{{ route('help.index') }}" class="btn-hover bg-transparent border-2 border-white text-white hover:bg-white hover:text-purple-600 px-6 py-3 rounded-lg font-semibold">
                         <i class="fas fa-book mr-2"></i>Help Center
                     </a>
                 </div>

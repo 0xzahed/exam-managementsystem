@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class InstructorExamController extends Controller
@@ -53,18 +54,22 @@ class InstructorExamController extends Controller
      */
     public function store(Request $request)
     {
-    $request->validate([
+        // Add debugging
+        Log::info('Exam creation started', ['user_id' => Auth::id(), 'request_data' => $request->all()]);
+        
+        try {
+            $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'course_id' => 'required|exists:courses,id',
             'duration_minutes' => 'required|integer|min:1',
-            'start_time' => 'required|date|after:now',
+            'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'questions' => 'required|array|min:1',
             'questions.*.type' => 'required|in:mcq,short_answer,file_upload',
             'questions.*.question' => 'required|string',
             'questions.*.points' => 'required|integer|min:1',
-            'questions.*.options' => 'required_if:questions.*.type,mcq|array|min:2',
+            'questions.*.options' => 'required_if:questions.*.type,mcq|array',
             'questions.*.correct_answer' => 'required_if:questions.*.type,mcq|string',
             'attachments.*' => 'file|max:10240', // 10MB max per file
             // Cohorts data
@@ -73,7 +78,9 @@ class InstructorExamController extends Controller
             'cohorts.*.start_time' => 'required_with:cohorts|date',
             'cohorts.*.end_time' => 'required_with:cohorts|date|after:cohorts.*.start_time',
             'cohorts.*.student_ids' => 'required_with:cohorts|array|min:1',
-    ]);
+        ]);
+
+        Log::info('Validation passed for exam creation');
 
         try {
             DB::beginTransaction();
@@ -169,8 +176,14 @@ class InstructorExamController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             
+            Log::error('Exam creation failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
             return back()->withErrors(['error' => 'Failed to create exam: ' . $e->getMessage()])
                 ->withInput();
+        }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Exam creation validation failed', ['errors' => $e->errors()]);
+            throw $e;
         }
     }
 

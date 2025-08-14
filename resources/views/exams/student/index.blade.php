@@ -13,12 +13,6 @@
                         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Available Exams</h1>
                         <p class="text-gray-600">View and take your scheduled exams</p>
                     </div>
-                    <a href="{{ route('student.dashboard') }}" 
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-arrow-left mr-2"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
             </div>
 
             <!-- Statistics Cards -->
@@ -239,11 +233,14 @@
                             <!-- Action Buttons -->
                             <div class="flex flex-col gap-3 min-w-[200px]">
                                 @if($canTake)
-                                <a href="{{ route('student.exams.take', $exam) }}"
-                                   class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-center py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2">
-                                    <i class="fas fa-play"></i>
-                                    Start Exam
-                                </a>
+                                <form action="{{ route('student.exams.start', $exam) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-center py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2">
+                                        <i class="fas fa-play"></i>
+                                        Start Exam
+                                    </button>
+                                </form>
                                 @elseif($isCompleted)
                                 <a href="{{ route('student.exams.result', $exam) }}"
                                    class="bg-blue-600 hover:bg-blue-700 text-white text-center py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2">
@@ -285,11 +282,7 @@
                         <i class="fas fa-clipboard-list text-6xl text-gray-300 mb-4"></i>
                         <h3 class="text-xl font-semibold text-gray-900 mb-2">No Exams Available</h3>
                         <p class="text-gray-600 mb-6">No exams are currently available for you to take.</p>
-                        <a href="{{ route('student.dashboard') }}"
-                           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Dashboard
-                        </a>
+            
                     </div>
                 </div>
                 @endforelse
