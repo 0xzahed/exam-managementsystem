@@ -18,7 +18,10 @@ export default defineConfig({
                 'resources/js/pages/courses/course-create.js',
                 'resources/js/pages/courses/manage.js',
                 'resources/js/pages/courses/materials.js',
-                'resources/js/pages/courses-enrollment.js'
+                'resources/js/pages/courses-enrollment.js',
+                'resources/js/pages/exams-index.js',
+                'resources/js/pages/exams/create.js',
+                'resources/js/pages/announcements-index.js'
             ],
             refresh: true,
         }),

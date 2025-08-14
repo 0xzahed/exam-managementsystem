@@ -28,37 +28,37 @@
                 Dashboard
             </a>
 
-            <a href="{{ route('courses.manage') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('courses.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('courses.manage') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('courses.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-chalkboard-teacher mr-3 text-lg"></i>
                 My Courses
             </a>
 
-            <a href="{{ route('students.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('students.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('students.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('students.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-users mr-3 text-lg"></i>
                 Students
             </a>
 
-            <a href="{{ route('instructor.assignments.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('assignments.*') && request()->routeIs('instructor.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('instructor.assignments.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('instructor.assignments.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-tasks mr-3 text-lg"></i>
                 Assignments
             </a>
 
-            <a href="#" onclick="alert('Exams feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('instructor.exams.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('instructor.exams.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-clipboard-check mr-3 text-lg"></i>
                 Exams
             </a>
 
-            <a href="#" onclick="alert('Gradebook feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('instructor.gradebook.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('instructor.gradebook.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-book-open mr-3 text-lg"></i>
                 Gradebook
             </a>
 
-            <a href="#" onclick="alert('Announcements feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('instructor.announcements.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('instructor.announcements.*') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-bullhorn mr-3 text-lg"></i>
                 Announcements
             </a>
 
-            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-calendar-alt mr-3 text-lg"></i>
                 Schedule
             </a>
@@ -66,53 +66,53 @@
             <!-- Divider -->
             <div class="border-t border-gray-200 my-4"></div>
 
-            <a href="{{ route('courses.create') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('courses.create') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('courses.create') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('courses.create') ? 'bg-purple-100 text-purple-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-plus-circle mr-3 text-lg"></i>
                 Create Course
             </a>
 
-            <a href="#" onclick="alert('Analytics feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-chart-bar mr-3 text-lg"></i>
                 Analytics
             </a>
             @else
             <!-- Student Navigation -->
-            <a href="{{ route('student.dashboard') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.dashboard') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.dashboard') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.dashboard') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-home mr-3 text-lg"></i>
                 Dashboard
             </a>
 
-            <a href="{{ route('student.courses.my') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.my') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.courses.my') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.my') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-book mr-3 text-lg"></i>
                 My Courses
             </a>
 
-            <a href="{{ route('student.courses.enroll') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.enroll') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.courses.enroll') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.courses.enroll') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-plus-circle mr-3 text-lg"></i>
                 Enroll Course
             </a>
 
-            <a href="{{ route('assignments.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('assignments.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('assignments.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('assignments.*') && !request()->routeIs('instructor.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-tasks mr-3 text-lg"></i>
                 Assignments
             </a>
 
-            <a href="#" onclick="alert('Exams feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.exams.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.exams.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-clipboard-check mr-3 text-lg"></i>
                 Exams
             </a>
 
-            <a href="#" onclick="alert('My Grades feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.grades.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.grades.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-chart-bar mr-3 text-lg"></i>
                 My Grades
             </a>
 
-            <a href="#" onclick="alert('Announcements feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="{{ route('student.announcements.index') }}" class="nav-item flex items-center px-4 py-3 text-sm font-medium {{ request()->routeIs('student.announcements.*') ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600' }} rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-bullhorn mr-3 text-lg"></i>
                 Announcements
             </a>
 
-            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-calendar-alt mr-3 text-lg"></i>
                 Schedule
             </a>
@@ -120,7 +120,7 @@
             <!-- Divider -->
             <div class="border-t border-gray-200 my-4"></div>
             
-            <a href="#" onclick="alert('Resources feature coming soon!')" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="#" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-download mr-3 text-lg"></i>
                 Resources
             </a>
@@ -129,7 +129,7 @@
 
         <!-- Sidebar Footer -->
         <div class="px-4 py-4 border-t border-gray-200">
-            <a href="#" onclick="alert('Help & Support feature coming soon!')" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900">
+            <a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 hover:text-gray-900 ">
                 <i class="fas fa-question-circle mr-3 text-lg"></i>
                 Help & Support
             </a>

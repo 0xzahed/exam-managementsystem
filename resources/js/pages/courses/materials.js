@@ -1,21 +1,9 @@
-// Materials Page - Enhanced UI Interactions
+// Materials Page - UI Interactions Only
 console.log('Materials.js loading...');
 
-// Test function for immediate availability
-window.testShowModal = function() {
-    console.log('testShowModal called - this proves JS is loaded');
-    const modal = document.getElementById('materialModal');
-    console.log('materialModal element:', modal);
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-        console.log('Modal should be visible now');
-    }
-};
-
-// Simple immediate function exposure
+// Global functions for modal control
 window.showModal = function(modalId) {
-    console.log('Direct showModal called with:', modalId);
+    console.log('showModal called with:', modalId);
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('hidden');
@@ -27,7 +15,7 @@ window.showModal = function(modalId) {
 };
 
 window.hideModal = function(modalId) {
-    console.log('Direct hideModal called with:', modalId);
+    console.log('hideModal called with:', modalId);
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('hidden');
@@ -36,316 +24,42 @@ window.hideModal = function(modalId) {
     }
 };
 
-console.log('Direct functions exposed');
+window.closeMaterialModal = function() {
+    hideModal('materialModal');
+    clearFileSelection();
+};
 
-// Ensure DOM is ready before initializing
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeMaterials);
-} else {
-    initializeMaterials();
-}
+window.closeSectionModal = function() {
+    hideModal('sectionModal');
+};
 
-function initializeMaterials() {
-    console.log('Materials.js initialized - DOM ready');
-    
-    // Expose functions globally for Blade template (ensure they're available)
-    window.showModal = showModal;
-    window.hideModal = hideModal;
-    window.toggleField = toggleField;
-    window.handleFileSelect = handleFileSelect;
-    window.clearFileSelection = clearFileSelection;
-    
-    // Legacy function names for backward compatibility
-    window.addNewSection = () => showModal('sectionModal');
-    window.addNewMaterial = () => showModal('materialModal');
-    window.addContentToSection = (sectionName) => {
-        showModal('materialModal');
-        const sectionInput = document.getElementById('materialSection');
-        if (sectionInput) sectionInput.value = sectionName;
-    };
-    window.closeSectionModal = () => hideModal('sectionModal');
-    window.closeMaterialModal = () => hideModal('materialModal');
-    window.closeEditMaterialModal = () => hideModal('editMaterialModal');
-    window.toggleMaterialFields = toggleField;
-    window.editMaterial = (id) => {
-        showModal('editMaterialModal');
-        const idInput = document.getElementById('editMaterialId');
-        if (idInput) idInput.value = id;
-    };
-    
-    // Add event listeners to all Add Material buttons
-    setupAddMaterialButtons();
-    
-    // Initialize components
-    setupFileUpload();
-    setupMaterialTypeToggle();
-    
-    console.log('All functions exposed to window:', {
-        showModal: typeof window.showModal,
-        hideModal: typeof window.hideModal,
-        addNewMaterial: typeof window.addNewMaterial
-    });
-}
+window.closeEditMaterialModal = function() {
+    hideModal('editMaterialModal');
+};
 
-// Setup Add Material buttons with event listeners
-function setupAddMaterialButtons() {
-    // Find all Add Material buttons
-    const addMaterialButtons = document.querySelectorAll('button[onclick*="materialModal"]');
-    console.log('Found Add Material buttons:', addMaterialButtons.length);
-    
-    addMaterialButtons.forEach((button, index) => {
-        console.log(`Setting up Add Material button ${index + 1}`);
-        
-        // Remove existing onclick to avoid conflicts
-        button.removeAttribute('onclick');
-        
-        // Add new click event listener
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log(`Add Material button ${index + 1} clicked`);
-            showModal('materialModal');
-            
-            // Check if this button is for a specific section
-            const sectionValue = button.getAttribute('data-section') || 
-                                button.closest('[data-section]')?.getAttribute('data-section');
-            
-            if (sectionValue) {
-                const sectionInput = document.getElementById('materialSection');
-                if (sectionInput) sectionInput.value = sectionValue;
-            }
-        });
-    });
-}
-
-// Modal control functions
-function showModal(modalId) {
-    console.log('showModal called with ID:', modalId);
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        console.log('Modal found, showing modal:', modalId);
-        console.log('Modal current classes:', modal.className);
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        console.log('Modal new classes:', modal.className);
-        console.log('Modal display style:', window.getComputedStyle(modal).display);
-    } else {
-        console.error('Modal not found with ID:', modalId);
-        console.log('Available elements with IDs:', 
-            Array.from(document.querySelectorAll('[id]')).map(el => el.id)
-        );
-    }
-}
-
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        console.log('Hiding modal:', modalId);
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        const form = modal.querySelector('form');
-        if (form) form.reset();
-        // Clear file selection when closing material modal
-        if (modalId === 'materialModal') {
-            clearFileSelection();
-        }
-    }
-}
-
-// Toggle material type fields
-function toggleField() {
+// Toggle material fields
+window.toggleMaterialFields = function() {
     const materialType = document.getElementById('materialType');
     if (!materialType) return;
     
     const selectedType = materialType.value;
     const fileField = document.getElementById('fileField');
     const textField = document.getElementById('textField');
-    const urlField = document.getElementById('urlField');
     
     // Hide all fields first
     if (fileField) fileField.style.display = 'none';
     if (textField) textField.style.display = 'none';
-    if (urlField) urlField.style.display = 'none';
     
     // Show relevant field
     if (selectedType === 'file' && fileField) {
         fileField.style.display = 'block';
     } else if (selectedType === 'text' && textField) {
         textField.style.display = 'block';
-    } else if (selectedType === 'url' && urlField) {
-        urlField.style.display = 'block';
     }
-}
+};
 
-// Setup file upload functionality
-function setupFileUpload() {
-    const uploadArea = document.getElementById('fileUploadArea');
-    const fileInput = document.getElementById('materialFile');
-    const browseButton = document.getElementById('browseFilesButton');
-    
-    if (!uploadArea || !fileInput) {
-        console.warn('File upload elements not found:', {
-            uploadArea: !!uploadArea,
-            fileInput: !!fileInput,
-            browseButton: !!browseButton
-        });
-        return;
-    }
-    
-    console.log('Setting up file upload - elements found:', {
-        uploadArea: !!uploadArea,
-        fileInput: !!fileInput,
-        browseButton: !!browseButton
-    });
-    
-    // Click handler specifically for browse button
-    if (browseButton) {
-        browseButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Browse Files button clicked - opening file dialog');
-            fileInput.click();
-        });
-        console.log('Browse button event listener added');
-    } else {
-        console.warn('Browse button not found with ID: browseFilesButton');
-    }
-    
-    // Click handler for upload area (except browse button)
-    uploadArea.addEventListener('click', (e) => {
-        // Don't trigger file input if clicking the browse button specifically
-        if (!e.target.closest('#browseFilesButton')) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Upload area clicked - opening file dialog');
-            fileInput.click();
-        }
-    });
-    
-    // File input change handler - MOST CRITICAL PART
-    fileInput.addEventListener('change', function(event) {
-        console.log('🔥 FILE INPUT CHANGE EVENT FIRED!');
-        console.log('Event target:', event.target);
-        console.log('Files in input:', event.target.files);
-        console.log('File count:', event.target.files.length);
-        
-        const file = event.target.files[0];
-        if (file) {
-            console.log('✅ File detected:', {
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
-            showSelectedFile(file);
-        } else {
-            console.log('❌ No file in input');
-        }
-    });
-    
-    uploadArea.addEventListener('dragleave', (e) => {// Additional event listeners for debugging
-        e.preventDefault();
-        if (!uploadArea.contains(e.relatedTarget)) {
-            uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
-            uploadArea.classList.add('border-gray-300');
-        }
-    });
-    fileInput.addEventListener('input', function(event) {
-        console.log('📝 FILE INPUT - INPUT EVENT');
-        const file = event.target.files[0];
-        if (file) {
-            showSelectedFile(file);
-        }
-    });
-    
-    console.log('File input event listeners attached');
-    
-    // Drag and drop functionality
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('border-indigo-500', 'bg-indigo-50');
-        console.log('File dragged over upload area');
-    });
-    
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        if (!uploadArea.classList.contains('border-green-400')) {
-            uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
-            uploadArea.classList.add('border-gray-300');
-        }
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        console.log('File dropped in upload area');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            handleFileSelect({ target: fileInput });
-        }
-    });
-}
-
-// Setup material type toggle
-function setupMaterialTypeToggle() {
-    const materialType = document.getElementById('materialType');
-    if (materialType) {
-        materialType.addEventListener('change', toggleField);
-        toggleField(); // Initialize with current value
-    }
-}
-
-// File selection handler - SIMPLIFIED AND WORKING
-function showSelectedFile(file) {
-    console.log('🎯 showSelectedFile called with:', file.name);
-    
-    const uploadArea = document.getElementById('fileUploadArea');
-    const uploadContent = uploadArea?.querySelector('.upload-content');
-    const fileSelected = uploadArea?.querySelector('.file-selected');
-    const fileName = document.getElementById('selectedFileName');
-    const fileSize = document.getElementById('selectedFileSize');
-    
-    console.log('Elements check:', {
-        uploadArea: !!uploadArea,
-        uploadContent: !!uploadContent,
-        fileSelected: !!fileSelected,
-        fileName: !!fileName,
-        fileSize: !!fileSize
-    });
-    
-    // Update file information
-    if (fileName) {
-        fileName.textContent = file.name;
-        console.log('✅ Set fileName to:', file.name);
-    }
-    
-    if (fileSize) {
-        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-        fileSize.textContent = `Size: ${sizeMB} MB`;
-        console.log('✅ Set fileSize to:', `Size: ${sizeMB} MB`);
-    }
-    
-    // Toggle visibility - hide upload content, show file selected
-    if (uploadContent) {
-        uploadContent.style.display = 'none';
-        console.log('✅ Hidden upload content');
-    }
-    
-    if (fileSelected) {
-        fileSelected.style.display = 'block';
-        fileSelected.classList.remove('hidden');
-        console.log('✅ Showing file selected area');
-    }
-    
-    // Apply visual feedback to upload area
-    if (uploadArea) {
-        uploadArea.classList.remove('border-gray-300', 'hover:border-indigo-500', 'hover:bg-indigo-50');
-        uploadArea.classList.add('border-green-400', 'bg-green-50');
-        console.log('✅ Applied green visual feedback');
-    }
-    
-    console.log('🎉 File selection display completed!');
-}
-
-function clearFileSelection() {
+// File handling functions
+window.clearFileSelection = function() {
     console.log('Clearing file selection');
     
     const fileInput = document.getElementById('materialFile');
@@ -377,6 +91,316 @@ function clearFileSelection() {
         uploadArea.classList.add('border-gray-300');
         console.log('Upload area reset to default style');
     }
+};
+
+// Section functions
+window.toggleSection = function(sectionName) {
+    const section = document.querySelector(`[data-section="${sectionName}"]`);
+    if (section) {
+        const content = section.querySelector('.section-content');
+        const toggle = section.querySelector('.section-toggle');
+        
+        if (content.style.maxHeight === '0px' || !content.style.maxHeight) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+            toggle.style.transform = 'rotate(180deg)';
+        } else {
+            content.style.maxHeight = '0px';
+            toggle.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+window.editSection = function(sectionName) {
+    // Implementation for editing section
+    console.log('Edit section:', sectionName);
+};
+
+window.scrollToSection = function(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+// Material functions
+window.editMaterial = function(materialId) {
+    showModal('editMaterialModal');
+    const idInput = document.getElementById('editMaterialId');
+    if (idInput) idInput.value = materialId;
+    
+    // Show loading state
+    showInfo('Loading material data...');
+    
+    // Fetch material data and populate the form
+    fetch(`/courses/${getCourseId()}/materials/${materialId}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.material) {
+                populateEditForm(data.material);
+                showSuccess('Material data loaded successfully');
+            } else {
+                showError('Material data not found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching material data:', error);
+            showError('Failed to load material data');
+        });
+};
+
+// Populate edit form with material data
+function populateEditForm(material) {
+    document.getElementById('editMaterialId').value = material.id;
+    document.getElementById('editMaterialTitle').value = material.title;
+    document.getElementById('editMaterialDescription').value = material.description;
+    document.getElementById('editMaterialSection').value = material.section;
+    
+    // Set privacy radio button
+    if (material.is_private) {
+        document.getElementById('editPrivate').checked = true;
+    } else {
+        document.getElementById('editPublic').checked = true;
+    }
+    
+    // Populate content based on type
+    const contentContainer = document.getElementById('editContentContainer');
+    contentContainer.innerHTML = '';
+    
+    if (material.type === 'text') {
+        contentContainer.innerHTML = `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                <textarea name="content" rows="6" placeholder="Enter your text content here..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">${material.content || ''}</textarea>
+            </div>
+        `;
+    } else if (material.type === 'file') {
+        contentContainer.innerHTML = `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Current File</label>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">${material.file_name || 'No file'}</p>
+                    <p class="text-xs text-gray-500">${material.file_size ? (material.file_size / 1024).toFixed(1) + ' KB' : ''}</p>
+                </div>
+                <label class="block text-sm font-medium text-gray-700 mb-2 mt-4">Upload New File (Optional)</label>
+                <input type="file" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.gif" 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            </div>
+        `;
+    }
+    
+    // Update form action
+    const editForm = document.getElementById('editMaterialForm');
+    editForm.action = `/courses/${getCourseId()}/materials/${material.id}`;
+    editForm.method = 'POST';
+    
+    // Add method override for PUT request
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'PUT';
+    editForm.appendChild(methodInput);
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    editForm.appendChild(csrfInput);
+};
+
+// Get course ID from the page
+function getCourseId() {
+    const courseViewRoot = document.getElementById('courseViewRoot');
+    return courseViewRoot ? courseViewRoot.getAttribute('data-course-id') : null;
 }
+
+window.toggleMaterialPrivacy = function(materialId, isPrivate) {
+    console.log('Toggle privacy for material:', materialId, 'isPrivate:', isPrivate);
+    
+    // Make AJAX request to toggle privacy
+    const courseId = getCourseId();
+    if (!courseId) {
+        showError('Course ID not found');
+        return;
+    }
+    
+    const url = `/courses/${courseId}/materials/${materialId}/privacy`;
+    const newPrivacy = !isPrivate;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            is_private: newPrivacy
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message || 'Privacy setting updated successfully');
+            // Optionally reload the page or update the UI
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showError(data.message || 'Failed to update privacy setting');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('An error occurred while updating privacy setting');
+    });
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Materials.js initialized - DOM ready');
+    
+    // Setup file upload functionality
+    setupFileUpload();
+    
+    // Setup material type toggle
+    setupMaterialTypeToggle();
+    
+    console.log('All functions initialized');
+});
+
+// Setup file upload functionality
+function setupFileUpload() {
+    const uploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('materialFile');
+    
+    if (!uploadArea || !fileInput) {
+        console.warn('File upload elements not found');
+        return;
+    }
+    
+    console.log('Setting up file upload');
+    
+    // File input change handler
+    fileInput.addEventListener('change', function(event) {
+        console.log('File input change event fired');
+        const file = event.target.files[0];
+        if (file) {
+            console.log('File selected:', file.name);
+            showSelectedFile(file);
+        }
+    });
+    
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-indigo-500', 'bg-indigo-50');
+        console.log('File dragged over upload area');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (!uploadArea.contains(e.relatedTarget)) {
+            uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+            uploadArea.classList.add('border-gray-300');
+        }
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        console.log('File dropped in upload area');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            const file = files[0];
+            if (file) {
+                showSelectedFile(file);
+            }
+        }
+    });
+}
+
+// Setup material type toggle
+function setupMaterialTypeToggle() {
+    const materialType = document.getElementById('materialType');
+    if (materialType) {
+        materialType.addEventListener('change', toggleMaterialFields);
+        toggleMaterialFields(); // Initialize with current value
+    }
+}
+
+// File selection display
+function showSelectedFile(file) {
+    console.log('showSelectedFile called with:', file.name);
+    
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+        showError('File size exceeds 10MB limit. Please choose a smaller file.');
+        clearFileSelection();
+        return;
+    }
+    
+    // Check file type
+    const allowedTypes = [
+        'application/pdf',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+        showError('Invalid file type. Please upload PDF, PPT, DOC, or image files only.');
+        clearFileSelection();
+        return;
+    }
+    
+    const uploadArea = document.getElementById('fileUploadArea');
+    const uploadContent = uploadArea?.querySelector('.upload-content');
+    const fileSelected = uploadArea?.querySelector('.file-selected');
+    const fileName = document.getElementById('selectedFileName');
+    const fileSize = document.getElementById('selectedFileSize');
+    
+    // Update file information
+    if (fileName) {
+        fileName.textContent = file.name;
+        console.log('Set fileName to:', file.name);
+    }
+    
+    if (fileSize) {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        fileSize.textContent = `Size: ${sizeMB} MB`;
+        console.log('Set fileSize to:', `Size: ${sizeMB} MB`);
+    }
+    
+    // Toggle visibility
+    if (uploadContent) {
+        uploadContent.style.display = 'none';
+        console.log('Hidden upload content');
+    }
+    
+    if (fileSelected) {
+        fileSelected.style.display = 'block';
+        fileSelected.classList.remove('hidden');
+        console.log('Showing file selected area');
+    }
+    
+    // Apply visual feedback
+    if (uploadArea) {
+        uploadArea.classList.remove('border-gray-300', 'hover:border-indigo-500', 'hover:bg-indigo-50');
+        uploadArea.classList.add('border-green-400', 'bg-green-50');
+        console.log('Applied green visual feedback');
+    }
+    
+    showSuccess(`File "${file.name}" selected successfully!`);
+    console.log('File selection display completed!');
+}
+
+console.log('Materials.js loaded successfully');
 
 

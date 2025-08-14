@@ -66,6 +66,16 @@ class User extends Authenticatable
     }
     
     /**
+     * The course enrollments for this user
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(\App\Models\CourseEnrollment::class, 'user_id');
+    }
+
+    /**
      * The courses this user is enrolled in (for students)
      * 
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -83,5 +93,13 @@ class User extends Authenticatable
     public function taughtCourses()
     {
         return $this->hasMany(Course::class, 'instructor_id');
+    }
+    
+    /**
+     * The announcements this user has created (for instructors)
+     */
+    public function announcements()
+    {
+        return $this->hasMany(Announcement::class, 'instructor_id');
     }
 }

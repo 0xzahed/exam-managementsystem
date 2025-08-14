@@ -23,11 +23,6 @@
         .card-hover:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .card-hover {
-            transition: all 0.3s ease;
         }
 
         /* Sidebar Styles */
@@ -39,7 +34,6 @@
             height: calc(100vh - 64px);
             background: white;
             border-right: 1px solid #e5e7eb;
-            transition: transform 0.3s ease-in-out;
             z-index: 30;
         }
         
@@ -47,7 +41,6 @@
             margin-left: 280px;
             margin-top: 64px;
             min-height: calc(100vh - 64px);
-            transition: margin-left 0.3s ease-in-out;
         }
         
         @media (max-width: 1024px) {
@@ -82,10 +75,16 @@
     <main class="main-content">
         <div class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Enhanced Notifications -->
+                @include('components.notifications')
+                
                 @yield('content')
             </div>
         </div>
     </main>
+
+    <!-- Toast Notifications -->
+    @include('components.toast')
 
     <!-- Sidebar Toggle Script -->
     <script>

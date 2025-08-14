@@ -61,4 +61,16 @@ class Course extends Model
     {
         return $this->hasMany(Assignment::class);
     }
+    
+    // Relationship with exams
+    public function exams()
+    {
+        return $this->hasMany(Exam::class);
+    }
+    
+    // Relationship with announcements
+    public function announcements()
+    {
+        return $this->hasMany(Announcement::class);
+    }
 }

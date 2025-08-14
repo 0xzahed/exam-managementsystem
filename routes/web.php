@@ -11,6 +11,11 @@ use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\InstructorExamController;
+use App\Http\Controllers\StudentExamController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\GradebookController;
+use App\Http\Controllers\StudentGradeController;
 use App\Helpers\RoleRedirectHelper;
 
 Route::get('/', function () {
@@ -67,31 +72,8 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/instructor/dashboard', function () {
-        // Fetch actual data for instructor dashboard
-        $user = Auth::user();
-        $courses = \App\Models\Course::where('instructor_id', $user->id)
-                                    ->with('students')
-                                    ->get();
-        $totalStudents = $courses->sum(function($course) {
-            return $course->students->count();
-        });
-        $pendingGrades = 0; // Will be implemented later
-        $todayClasses = 0; // Will be implemented later
-        $pendingAssignments = collect();
-        $todaySchedule = collect();
-        $recentActivities = collect();
-        
-        return view('dashboard.instructor', compact(
-            'courses', 
-            'totalStudents', 
-            'pendingGrades', 
-            'todayClasses',
-            'pendingAssignments',
-            'todaySchedule',
-            'recentActivities'
-        ));
-    })->name('instructor.dashboard');
+    Route::get('/instructor/dashboard', [DashboardController::class, 'instructorDashboard'])
+         ->name('instructor.dashboard');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -106,7 +88,7 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
     Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
     Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/manage', [CourseController::class, 'manage'])->name('courses.manage');
-    Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
+    // Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show'); // Removed - no matching view
     Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
     
@@ -131,8 +113,6 @@ Route::middleware(['auth', 'role:instructor'])->group(function () {
     
     // Student management routes
     Route::get('/students', [DashboardController::class, 'index'])->name('students.index');
-    Route::get('/students/{student}', [DashboardController::class, 'show'])->name('students.show');
-    Route::delete('/students/{student}/courses/{course}', [DashboardController::class, 'removeFromCourse'])->name('students.remove.course');
     
     // Assignment management routes (Instructor only)
     Route::get('/instructor/assignments', [AssignmentController::class, 'index'])->name('instructor.assignments.index');
@@ -170,6 +150,10 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
     Route::post('/assignments/{assignment}/submit', [AssignmentController::class, 'processSubmission'])->name('assignments.process-submission');
     Route::get('/assignments/submissions/{submission}/download', [AssignmentController::class, 'downloadSubmission'])->name('assignments.download');
+    
+    // Student announcement routes
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('student.announcements.index');
+    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('student.announcements.show');
 });
 
 // Test routes (remove in production)
@@ -282,4 +266,125 @@ Route::get('/test-session', function() {
         ] : null,
         'session_id' => session()->getId()
     ]);
+});
+
+// Debug route for exam issues
+Route::get('/debug-exams', function() {
+    if (!Auth::check()) {
+        return response()->json(['error' => 'Not authenticated']);
+    }
+    
+    $user = Auth::user();
+    $data = [
+        'user' => [
+            'id' => $user->id,
+            'role' => $user->role,
+            'name' => $user->first_name . ' ' . $user->last_name
+        ]
+    ];
+    
+    if ($user->role === 'student') {
+        $enrollments = $user->enrollments;
+        $enrolledCourseIds = $enrollments ? $enrollments->pluck('course_id') : collect([]);
+        
+        $data['student_info'] = [
+            'enrollments_count' => $enrollments ? $enrollments->count() : 0,
+            'enrolled_course_ids' => $enrolledCourseIds->toArray(),
+            'enrolled_courses' => $enrollments ? $enrollments->map(function($enrollment) {
+                return [
+                    'course_id' => $enrollment->course_id,
+                    'course_title' => $enrollment->course ? $enrollment->course->title : 'No course'
+                ];
+            })->toArray() : []
+        ];
+        
+        // Get all exams for enrolled courses
+        $exams = collect([]);
+        if ($enrolledCourseIds->isNotEmpty()) {
+            $exams = \App\Models\Exam::with(['course'])
+                ->whereIn('course_id', $enrolledCourseIds)
+                ->get();
+        }
+        
+        $data['exams'] = [
+            'total_count' => $exams->count(),
+            'published_count' => $exams->where('status', 'published')->count(),
+            'draft_count' => $exams->where('status', 'draft')->count(),
+            'exam_details' => $exams->map(function($exam) {
+                return [
+                    'id' => $exam->id,
+                    'title' => $exam->title,
+                    'status' => $exam->status,
+                    'course_id' => $exam->course_id,
+                    'course_title' => $exam->course ? $exam->course->title : 'No course'
+                ];
+            })->toArray()
+        ];
+    } elseif ($user->role === 'instructor') {
+        $exams = \App\Models\Exam::with(['course'])
+            ->where('instructor_id', $user->id)
+            ->get();
+            
+        $data['instructor_info'] = [
+            'exams_count' => $exams->count(),
+            'published_count' => $exams->where('status', 'published')->count(),
+            'draft_count' => $exams->where('status', 'draft')->count(),
+            'exam_details' => $exams->map(function($exam) {
+                return [
+                    'id' => $exam->id,
+                    'title' => $exam->title,
+                    'status' => $exam->status,
+                    'course_id' => $exam->course_id,
+                    'course_title' => $exam->course ? $exam->course->title : 'No course'
+                ];
+            })->toArray()
+        ];
+    }
+    
+    return response()->json($data);
+})->middleware('auth');
+
+// Exam Management Routes
+
+// Instructor Exam Routes
+Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'role:instructor'])->group(function () {
+    Route::resource('exams', InstructorExamController::class);
+    Route::get('exams/{exam}/results', [InstructorExamController::class, 'results'])->name('exams.results');
+    Route::get('exams/{exam}/attempts', [InstructorExamController::class, 'attempts'])->name('exams.attempts');
+    
+    // Announcement routes
+    Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    Route::get('announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
+    Route::put('announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::get('announcements/student/list', [AnnouncementController::class, 'getStudentAnnouncements'])->name('announcements.student.list');
+    
+    // Gradebook routes
+    Route::get('gradebook', [GradebookController::class, 'index'])->name('gradebook.index');
+    Route::get('gradebook/{course}', [GradebookController::class, 'show'])->name('gradebook.show');
+    Route::post('gradebook/update-grade', [GradebookController::class, 'updateGrade'])->name('gradebook.update-grade');
+    Route::post('gradebook/bulk-update', [GradebookController::class, 'bulkUpdateGrades'])->name('gradebook.bulk-update');
+    Route::post('gradebook/grade-assignment/{submission}', [GradebookController::class, 'gradeAssignment'])->name('gradebook.grade-assignment');
+    Route::post('gradebook/grade-exam/{attempt}', [GradebookController::class, 'gradeExam'])->name('gradebook.grade-exam');
+    Route::get('gradebook/{course}/export', [GradebookController::class, 'exportGrades'])->name('gradebook.export');
+});
+
+// Student Exam Routes  
+Route::prefix('student')->name('student.')->middleware(['auth', 'role:student'])->group(function () {
+    Route::get('exams', [StudentExamController::class, 'index'])->name('exams.index');
+    // Route::get('exams/{exam}', [StudentExamController::class, 'show'])->name('exams.show'); // Removed - no matching view
+    Route::post('exams/{exam}/start', [StudentExamController::class, 'start'])->name('exams.start');
+    Route::get('exams/{exam}/take', [StudentExamController::class, 'take'])->name('exams.take');
+    Route::post('exams/{exam}/save-answer', [StudentExamController::class, 'saveAnswer'])->name('exams.save-answer');
+    Route::post('exams/{exam}/submit', [StudentExamController::class, 'submit'])->name('exams.submit');
+    Route::get('exams/{exam}/result', [StudentExamController::class, 'result'])->name('exams.result');
+    Route::get('exams/{exam}/time', [StudentExamController::class, 'getRemainingTime'])->name('exams.time');
+    
+    // Student Grade Routes
+    Route::get('grades', [StudentGradeController::class, 'index'])->name('grades.index');
+    Route::get('grades/{course}', [StudentGradeController::class, 'show'])->name('grades.show');
+    Route::get('grades/details/{grade}', [StudentGradeController::class, 'getGradeDetails'])->name('grades.details');
 });

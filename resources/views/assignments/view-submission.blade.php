@@ -203,41 +203,16 @@
                         <i class="fas fa-external-link-alt mr-1"></i>
                         View in Drive
                     </a>
+                    <a href="{{ route('instructor.assignments.submissions.download', $submission->id) }}" 
+                       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-download mr-1"></i>
+                        Download
+                    </a>
                 </div>
             </div>
         </div>
         @endif
 
-        @if(!empty($submissionFiles))
-        <div class="space-y-3">
-            @foreach($submissionFiles as $file)
-            <div class="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-file text-2xl text-gray-600 mr-3"></i>
-                    <div>
-                        <p class="font-medium text-gray-900">{{ $file['name'] ?? 'Unknown File' }}</p>
-                        <p class="text-sm text-gray-600">
-                            {{ isset($file['size']) ? number_format($file['size'] / 1024, 2) . ' KB' : 'Unknown size' }}
-                            @if(isset($file['mime_type']))
-                            • {{ $file['mime_type'] }}
-                            @endif
-                        </p>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    @if(isset($file['google_drive_url']))
-                    <a href="{{ $file['google_drive_url'] }}" 
-                       target="_blank"
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
-                        <i class="fas fa-external-link-alt mr-1"></i>
-                        View
-                    </a>
-                    @endif
-                </div>
-            </div>
-            @endforeach
-        </div>
-        @endif
     </div>
     @endif
 

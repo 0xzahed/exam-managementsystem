@@ -139,6 +139,16 @@ let currentSubmissionId = null;
 function gradeSubmission(submissionId) {
     currentSubmissionId = submissionId;
     
+    // Set form action for regular form submission
+    const gradeForm = document.getElementById('gradeForm');
+    gradeForm.action = `/instructor/assignments/submissions/${submissionId}/grade`;
+    
+    // Set hidden submission ID input
+    const submissionIdInput = document.getElementById('submissionIdInput');
+    if (submissionIdInput) {
+        submissionIdInput.value = submissionId;
+    }
+    
     // Find the submission row to get current data
     const row = document.querySelector(`[onclick*="${submissionId}"]`).closest('tr');
     const gradeCell = row.cells[3];
@@ -209,37 +219,80 @@ function handleGradeSubmission(e) {
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
     submitButton.disabled = true;
     
-    // Submit grade
+    // Submit grade via AJAX
     fetch(`/instructor/assignments/submissions/${currentSubmissionId}/grade`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
             grade: grade,
             feedback: feedback
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.redirected) {
+            // If server redirected, follow the redirect
+            window.location.href = response.url;
+            return;
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
+        if (data && data.success) {
             showSuccessToast('Grade saved successfully!');
             updateSubmissionRow(currentSubmissionId, grade, maxMarks, feedback);
             closeGradeModal();
             updateStatistics();
-        } else {
+        } else if (data) {
             showErrorToast(data.message || 'Failed to save grade');
         }
     })
     .catch(error => {
-        showErrorToast('Network error occurred');
         console.error('Error:', error);
+        // If AJAX fails, submit as regular form
+        submitAsRegularForm(currentSubmissionId, grade, feedback);
     })
     .finally(() => {
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
     });
+}
+
+/**
+ * Submit grade as regular form (fallback)
+ */
+function submitAsRegularForm(submissionId, grade, feedback) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/instructor/assignments/submissions/${submissionId}/grade`;
+    
+    // CSRF Token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    form.appendChild(csrfInput);
+    
+    // Grade input
+    const gradeInput = document.createElement('input');
+    gradeInput.type = 'hidden';
+    gradeInput.name = 'grade';
+    gradeInput.value = grade;
+    form.appendChild(gradeInput);
+    
+    // Feedback input
+    const feedbackInput = document.createElement('input');
+    feedbackInput.type = 'hidden';
+    feedbackInput.name = 'feedback';
+    feedbackInput.value = feedback;
+    form.appendChild(feedbackInput);
+    
+    document.body.appendChild(form);
+    form.submit();
 }
 
 /**

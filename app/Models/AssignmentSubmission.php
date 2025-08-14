@@ -25,7 +25,9 @@ class AssignmentSubmission extends Model
     protected $casts = [
         'submission_files' => 'array',
         'submitted_at' => 'datetime',
-        'graded_at' => 'datetime'
+        'graded_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     /**
@@ -50,6 +52,14 @@ class AssignmentSubmission extends Model
     public function grader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'graded_by');
+    }
+
+    /**
+     * Get the grade for this submission
+     */
+    public function grade()
+    {
+        return $this->morphOne(Grade::class, 'gradeable');
     }
 
     /**

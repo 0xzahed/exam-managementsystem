@@ -65,18 +65,18 @@
 
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover">
+                    <a href="{{ route('student.courses.my') }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover hover:shadow-md ">
                         <div class="flex items-center">
                             <div class="p-3 bg-blue-100 rounded-lg">
                                 <i class="fas fa-book text-blue-600 text-xl"></i>
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm text-gray-600">Total Courses</p>
-                                <p class="text-2xl font-bold text-gray-800">0</p>
+                                <p class="text-2xl font-bold text-gray-800">{{ $totalEnrolledCourses }}</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover">
+                    </a>
+                    <a href="{{ route('assignments.index') }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover hover:shadow-md ">
                         <div class="flex items-center">
                             <div class="p-3 bg-orange-100 rounded-lg">
                                 <i class="fas fa-tasks text-orange-600 text-xl"></i>
@@ -86,8 +86,8 @@
                                 <p class="text-2xl font-bold text-gray-800">{{ $pendingAssignments }}</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover">
+                    </a>
+                    <a href="{{ route('student.grades.index') }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover hover:shadow-md ">
                         <div class="flex items-center">
                             <div class="p-3 bg-green-100 rounded-lg">
                                 <i class="fas fa-chart-line text-green-600 text-xl"></i>
@@ -97,8 +97,8 @@
                                 <p class="text-2xl font-bold text-gray-800">{{ $averageGrade ? $averageGrade . '%' : 'N/A' }}</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover">
+                    </a>
+                    <a href="{{ route('student.exams.index') }}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 card-hover hover:shadow-md ">
                         <div class="flex items-center">
                             <div class="p-3 bg-purple-100 rounded-lg">
                                 <i class="fas fa-clock text-purple-600 text-xl"></i>
@@ -108,7 +108,7 @@
                                 <p class="text-2xl font-bold text-gray-800">{{ $upcomingExams }}</p>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <!-- Main Dashboard Grid -->
@@ -120,14 +120,14 @@
                             <div class="p-6 border-b border-gray-200">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">My Courses ({{ $totalEnrolledCourses }})</h3>
-                                    <!-- <a href="/student/courses/enroll" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <a href="{{ route('student.courses.enroll') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                         <i class="fas fa-plus mr-1"></i>Enroll More
-                                    </a> -->
+                                    </a>
                                 </div>
                             </div>
                             <div class="p-6">
                                 @forelse($enrolledCourses as $course)
-                                    <div class="flex items-center justify-between p-4 border border-gray-200 bg-gray-50 rounded-lg mb-3">
+                                    <div class="flex items-center justify-between p-4 border border-gray-200 bg-gray-50 rounded-lg mb-3 hover:bg-gray-100 ">
                                         <div class="flex items-center">
                                             <div class="w-12 h-12 bg-blue-500 text-white rounded-lg flex items-center justify-center mr-4">
                                                 <i class="fas fa-book text-lg"></i>
@@ -139,8 +139,8 @@
                                             </div>
                                         </div>
                                         <div class="flex gap-2">
-                                            <a href="/my-courses/{{ $course->id }}" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
-                                                <i class="fas fa-eye mr-1 "></i>View
+                                            <a href="{{ route('course.details', $course->id) }}" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 ">
+                                                <i class="fas fa-eye mr-1"></i>View
                                             </a>
                                         </div>
                                     </div>
@@ -148,7 +148,7 @@
                                     <div class="text-center py-8">
                                         <i class="fas fa-book text-gray-400 text-3xl mb-3"></i>
                                         <p class="text-gray-500 text-sm mb-2">No courses enrolled yet</p>
-                                        <a href="/student/courses/enroll" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                                        <a href="{{ route('student.courses.enroll') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium ">
                                             <i class="fas fa-plus mr-2"></i>Browse Courses
                                         </a>
                                     </div>
@@ -159,25 +159,62 @@
                         <!-- Upcoming Assignments -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                             <div class="p-6 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800">Upcoming Assignments</h3>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-800">Upcoming Assignments</h3>
+                                    <a href="{{ route('assignments.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        <i class="fas fa-eye mr-1"></i>View All
+                                    </a>
+                                </div>
                             </div>
                             <div class="p-6">
                                 <div class="space-y-4">
                                     @forelse($assignments as $assignment)
-                                    <div class="flex items-center justify-between p-4 border border-red-200 bg-red-50 rounded-lg mb-2">
+                                    <div class="flex items-center justify-between p-4 border border-red-200 bg-red-50 rounded-lg mb-2 hover:bg-red-100 ">
                                         <div class="flex items-center">
                                             <div class="w-3 h-3 bg-red-500 rounded-full mr-4"></div>
                                             <div>
                                                 <h4 class="font-medium text-gray-800">{{ $assignment->title }}</h4>
-                                                <p class="text-sm text-gray-600">{{ $assignment->course->title ?? '' }} • Due {{ $assignment->due_date }}</p>
+                                                <p class="text-sm text-gray-600">{{ $assignment->course->title ?? '' }} • Due {{ \Carbon\Carbon::parse($assignment->due_date)->format('M d, Y') }}</p>
                                             </div>
                                         </div>
-                                        <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">
+                                        <a href="{{ route('assignments.show', $assignment->id) }}" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium ">
                                             Submit
-                                        </button>
+                                        </a>
                                     </div>
                                     @empty
-                                    <div class="text-gray-500">No upcoming assignments.</div>
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                                        <p class="text-gray-500 text-sm">No upcoming assignments.</p>
+                                        <p class="text-gray-400 text-xs mt-1">You're all caught up!</p>
+                                    </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800">Recent Activities</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-4">
+                                    @forelse($recentActivities as $activity)
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full">
+                                            <i class="text-xs {{ $activity->color ?? 'text-gray-600' }} {{ $activity->icon ?? 'fas fa-circle' }}"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-800">{{ $activity->message ?? $activity->description }}</p>
+                                            <p class="text-xs text-gray-500">{{ $activity->time ?? $activity->time_ago }}</p>
+                                        </div>
+                                    </div>
+                                    @empty
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-clock text-gray-400 text-2xl mb-2"></i>
+                                        <p class="text-gray-500 text-sm">No recent activities.</p>
+                                        <p class="text-gray-400 text-xs mt-1">Your activities will appear here.</p>
+                                    </div>
                                     @endforelse
                                 </div>
                             </div>
@@ -191,14 +228,16 @@
                             <div class="p-6 border-b border-gray-200">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-gray-800">Recent Announcements</h3>
-                                    <span class="text-gray-500 text-sm">Coming Soon</span>
+                                    <a href="{{ route('student.announcements.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                        <i class="fas fa-eye mr-1"></i>View All
+                                    </a>
                                 </div>
                             </div>
                             <div class="p-6">
                                 <div class="space-y-4">
                                     @forelse($announcements as $announcement)
-                                    <a href="{{ route('announcements.show', $announcement->id) }}" class="block">
-                                        <div class="border-l-4 border-indigo-500 pl-4 hover:bg-gray-50 rounded-r transition-colors cursor-pointer">
+                                    <a href="{{ route('student.announcements.show', $announcement->id) }}" class="block">
+                                        <div class="border-l-4 border-indigo-500 pl-4 hover:bg-gray-50 rounded-r ">
                                             <div class="flex items-start justify-between">
                                                 <div class="flex-1">
                                                     <h4 class="font-medium text-gray-800 text-sm">{{ $announcement->title }}</h4>
@@ -228,7 +267,12 @@
                         <!-- Upcoming Exams -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                             <div class="p-6 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800">Upcoming Exams</h3>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-800">Upcoming Exams</h3>
+                                    <a href="{{ route('student.exams.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        <i class="fas fa-eye mr-1"></i>View All
+                                    </a>
+                                </div>
                             </div>
                             <div class="p-6">
                                 <div class="space-y-4">
@@ -239,12 +283,26 @@
                                             <span class="text-xs {{ $exam['badge_bg'] }} text-white px-2 py-1 rounded-full">{{ $exam['badge'] }}</span>
                                         </div>
                                         <p class="text-sm text-gray-600 mb-3">Duration: {{ $exam['duration'] }} • {{ $exam['type'] }}</p>
-                                        <button class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 text-sm font-medium">
+                                        @if(isset($exam['route']))
+                                        <a href="{{ $exam['route'] }}" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm font-medium ">
+                                            @if($exam['can_take'])
+                                                Take Exam
+                                            @else
+                                                View Result
+                                            @endif
+                                        </a>
+                                        @else
+                                        <button class="w-full bg-gray-600 text-white py-2 rounded-lg text-sm font-medium cursor-not-allowed">
                                             Review Materials
                                         </button>
+                                        @endif
                                     </div>
                                     @empty
-                                    <div class="text-gray-500">No upcoming exams.</div>
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-clipboard-check text-gray-400 text-2xl mb-2"></i>
+                                        <p class="text-gray-500 text-sm">No upcoming exams.</p>
+                                        <p class="text-gray-400 text-xs mt-1">Check back later for exam schedules.</p>
+                                    </div>
                                     @endforelse
                                 </div>
                             </div>
@@ -253,7 +311,12 @@
                         <!-- Recent Grades -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                             <div class="p-6 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800">Recent Grades</h3>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-800">Recent Grades</h3>
+                                    <a href="{{ route('student.grades.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        <i class="fas fa-eye mr-1"></i>View All
+                                    </a>
+                                </div>
                             </div>
                             <div class="p-6">
                                 <div class="space-y-3">
@@ -261,12 +324,17 @@
                                     <div class="flex items-center justify-between">
                                         <div>
                                             <p class="text-sm font-medium text-gray-800">{{ $grade['title'] }}</p>
-                                            <p class="text-xs text-gray-600">{{ $grade['course'] }}</p>
+                                            <p class="text-xs text-gray-600">{{ $grade['course'] }} • {{ $grade['type'] ?? 'Assignment' }}</p>
+                                            <p class="text-xs text-gray-500">{{ $grade['date'] }}</p>
                                         </div>
-                                        <span class="text-lg font-bold {{ $grade['color'] }}">{{ $grade['score'] }}</span>
+                                        <span class="text-lg font-bold {{ $grade['color'] }}">{{ $grade['percentage'] }}</span>
                                     </div>
                                     @empty
-                                    <div class="text-gray-500">No recent grades.</div>
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-chart-bar text-gray-400 text-2xl mb-2"></i>
+                                        <p class="text-gray-500 text-sm">No recent grades.</p>
+                                        <p class="text-gray-400 text-xs mt-1">Your grades will appear here once graded.</p>
+                                    </div>
                                     @endforelse
                                 </div>
                             </div>
@@ -277,5 +345,3 @@
     </div>
 </div>
 @endsection
-
-<!--  -->

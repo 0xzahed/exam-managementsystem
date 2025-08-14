@@ -82,14 +82,7 @@ class CourseController extends Controller
         return view('courses.manage', compact('courses', 'stats'));
     }
 
-    public function show(Course $course)
-    {
-        if ($course->instructor_id !== Auth::id()) {
-            abort(403, 'Unauthorized access to this course.');
-        }
 
-        return redirect()->route('courses.materials', $course);
-    }
 
     public function update(Request $request, Course $course)
     {

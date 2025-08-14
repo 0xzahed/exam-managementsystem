@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Form Test</title>
+</head>
+<body>
+    <h1>Debug Form Test</h1>
+    <form id="testForm" action="/instructor/exams" method="POST">
+        <input type="hidden" name="_token" value="test-token">
+        <input type="text" name="title" placeholder="Exam Title" required>
+        <button type="submit" id="submitBtn">Test Submit</button>
+    </form>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submit event triggered');
+            alert('Form submit event triggered!');
+        });
+
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            console.log('Submit button clicked');
+            alert('Submit button clicked!');
+        });
+    </script>
+</body>
+</html>

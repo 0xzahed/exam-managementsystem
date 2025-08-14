@@ -263,4 +263,210 @@ class GoogleDriveService
             return false;
         }
     }
+
+    /**
+     * Create exam material folder in Google Drive
+     */
+    public function createExamMaterialFolder(string $courseTitle, string $examTitle)
+    {
+        try {
+            // Main exams folder ID
+            $examsFolderId = '12doPoLXsgun9AuGbxxwePNiK2muZfM8i';
+            
+            // Create course folder if it doesn't exist
+            $courseFolderName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $courseTitle);
+            $courseFolderName = trim($courseFolderName);
+            
+            $existingCourseFolder = $this->findFolderByName($courseFolderName, $examsFolderId);
+            
+            if ($existingCourseFolder) {
+                $courseFolderId = $existingCourseFolder['id'];
+            } else {
+                $courseFolderMetadata = new \Google\Service\Drive\DriveFile([
+                    'name' => $courseFolderName,
+                    'parents' => [$examsFolderId],
+                    'mimeType' => 'application/vnd.google-apps.folder'
+                ]);
+                $courseFolder = $this->service->files->create($courseFolderMetadata);
+                $courseFolderId = $courseFolder->id;
+            }
+            
+            // Create exam folder
+            $examFolderName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $examTitle);
+            $examFolderName = trim($examFolderName);
+            
+            $existingExamFolder = $this->findFolderByName($examFolderName, $courseFolderId);
+            
+            if ($existingExamFolder) {
+                $examFolderId = $existingExamFolder['id'];
+            } else {
+                $examFolderMetadata = new \Google\Service\Drive\DriveFile([
+                    'name' => $examFolderName,
+                    'parents' => [$courseFolderId],
+                    'mimeType' => 'application/vnd.google-apps.folder'
+                ]);
+                $examFolder = $this->service->files->create($examFolderMetadata);
+                $examFolderId = $examFolder->id;
+            }
+
+            Log::info('Exam material folder created successfully', [
+                'course' => $courseTitle,
+                'exam' => $examTitle,
+                'folder_id' => $examFolderId
+            ]);
+
+            return $examFolderId;
+
+        } catch (\Exception $e) {
+            Log::error('Exam material folder creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Upload exam material file to Google Drive
+     */
+    public function uploadExamMaterial(UploadedFile $file, string $courseTitle, string $examTitle)
+    {
+        try {
+            $examFolderId = $this->createExamMaterialFolder($courseTitle, $examTitle);
+            
+            if (!$examFolderId) {
+                throw new \Exception('Failed to create exam material folder');
+            }
+
+            $fileName = $file->getClientOriginalName();
+
+            $driveFile = new \Google\Service\Drive\DriveFile();
+            $driveFile->setName($fileName);
+            $driveFile->setParents([$examFolderId]);
+
+            $result = $this->service->files->create($driveFile, [
+                'data' => file_get_contents($file->getRealPath()),
+                'mimeType' => $file->getMimeType(),
+                'uploadType' => 'multipart'
+            ]);
+
+            Log::info('Exam material uploaded successfully', [
+                'course' => $courseTitle,
+                'exam' => $examTitle,
+                'file' => $fileName,
+                'file_id' => $result->id
+            ]);
+
+            return [
+                'id' => $result->id,
+                'url' => "https://drive.google.com/file/d/{$result->id}/view",
+                'file_name' => $fileName
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exam material upload failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create exam submission folder in Google Drive
+     */
+    public function createExamSubmissionFolder(string $courseTitle, string $examTitle)
+    {
+        try {
+            // Main submissions folder ID
+            $submissionsFolderId = '1lqiwv5_LFIoLCenzDk3wW5WkRZU7BxKs';
+            
+            // Create course folder if it doesn't exist
+            $courseFolderName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $courseTitle);
+            $courseFolderName = trim($courseFolderName);
+            
+            $existingCourseFolder = $this->findFolderByName($courseFolderName, $submissionsFolderId);
+            
+            if ($existingCourseFolder) {
+                $courseFolderId = $existingCourseFolder['id'];
+            } else {
+                $courseFolderMetadata = new \Google\Service\Drive\DriveFile([
+                    'name' => $courseFolderName,
+                    'parents' => [$submissionsFolderId],
+                    'mimeType' => 'application/vnd.google-apps.folder'
+                ]);
+                $courseFolder = $this->service->files->create($courseFolderMetadata);
+                $courseFolderId = $courseFolder->id;
+            }
+            
+            // Create exam folder
+            $examFolderName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $examTitle);
+            $examFolderName = trim($examFolderName);
+            
+            $existingExamFolder = $this->findFolderByName($examFolderName, $courseFolderId);
+            
+            if ($existingExamFolder) {
+                $examFolderId = $existingExamFolder['id'];
+            } else {
+                $examFolderMetadata = new \Google\Service\Drive\DriveFile([
+                    'name' => $examFolderName,
+                    'parents' => [$courseFolderId],
+                    'mimeType' => 'application/vnd.google-apps.folder'
+                ]);
+                $examFolder = $this->service->files->create($examFolderMetadata);
+                $examFolderId = $examFolder->id;
+            }
+
+            Log::info('Exam submission folder created successfully', [
+                'course' => $courseTitle,
+                'exam' => $examTitle,
+                'folder_id' => $examFolderId
+            ]);
+
+            return $examFolderId;
+
+        } catch (\Exception $e) {
+            Log::error('Exam submission folder creation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Upload exam submission file to Google Drive
+     */
+    public function uploadExamSubmission(UploadedFile $file, string $courseTitle, string $examTitle, string $studentName)
+    {
+        try {
+            $examFolderId = $this->createExamSubmissionFolder($courseTitle, $examTitle);
+            
+            if (!$examFolderId) {
+                throw new \Exception('Failed to create exam submission folder');
+            }
+
+            $originalFileName = $file->getClientOriginalName();
+            $fileName = $studentName . '_' . $originalFileName;
+
+            $driveFile = new \Google\Service\Drive\DriveFile();
+            $driveFile->setName($fileName);
+            $driveFile->setParents([$examFolderId]);
+
+            $result = $this->service->files->create($driveFile, [
+                'data' => file_get_contents($file->getRealPath()),
+                'mimeType' => $file->getMimeType(),
+                'uploadType' => 'multipart'
+            ]);
+
+            Log::info('Exam submission uploaded successfully', [
+                'course' => $courseTitle,
+                'exam' => $examTitle,
+                'student' => $studentName,
+                'file' => $fileName,
+                'file_id' => $result->id
+            ]);
+
+            return [
+                'id' => $result->id,
+                'url' => "https://drive.google.com/file/d/{$result->id}/view",
+                'file_name' => $fileName
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Exam submission upload failed: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

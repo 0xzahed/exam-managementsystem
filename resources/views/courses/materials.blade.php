@@ -3,158 +3,7 @@
 @section('title', $course->title)
 
 @section('styles')
-<style>
-    .section-card {
-        transition: all 0.3s ease;
-    }
-
-    .section-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .expandable-section {
-        transition: max-height 0.3s ease;
-        overflow: hidden;
-    }
-
-    .add-section-btn {
-        border: 2px dashed #d1d5db;
-        transition: all 0.3s ease;
-    }
-
-    .add-section-btn:hover {
-        border-color: #6366f1;
-        background-color: #f8fafc;
-    }
-
-    .material-item {
-        transition: all 0.2s ease;
-    }
-
-    .material-item:hover {
-        background-color: #f9fafb;
-    }
-
-    /* Toast Notification Styles */
-    .toast-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        max-width: 400px;
-        width: 100%;
-        padding: 0 20px;
-    }
-
-    .toast {
-        padding: 16px 20px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 500;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        transform: translateX(400px);
-        opacity: 0;
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .toast.show {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    .toast.success {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .toast.error {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-
-    .toast.warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .toast.info {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-
-    .toast-icon {
-        font-size: 20px;
-        flex-shrink: 0;
-    }
-
-    .toast-close {
-        margin-left: auto;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-
-    .toast-close:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* File Upload Styles */
-    .file-upload-area {
-        transition: all 0.3s ease;
-    }
-
-    .file-upload-area:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .file-upload-area.drag-over {
-        border-color: #6366f1;
-        background-color: #eef2ff;
-        transform: scale(1.02);
-    }
-
-    .upload-content, .file-selected {
-        transition: all 0.3s ease;
-    }
-
-    /* Flash Message Animations */
-    @keyframes slide-down {
-        0% {
-            transform: translate(-50%, -100%);
-            opacity: 0;
-        }
-        100% {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-    }
-
-    .animate-slide-down {
-        animation: slide-down 0.4s ease-out forwards;
-    }
-
-    /* Auto-hide flash messages */
-    .flash-message {
-        animation: slide-down 0.4s ease-out forwards, fade-out 0.4s ease-out 4.6s forwards;
-    }
-
-    @keyframes fade-out {
-        0% {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(-50%, -20px);
-        }
-    }
-</style>
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @endsection
 
 @section('content')
@@ -258,7 +107,7 @@
                     </div>
                     @endforeach
 
-                    <button id="addMaterialButton" onclick="showModal('materialModal')" class="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition-colors">
+                    <button id="addMaterialButton" onclick="showModal('materialModal')" class="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 ">
                         <i class="fas fa-plus mr-2"></i>Add Material
                     </button>
                 </div>
@@ -351,7 +200,7 @@
                                                             </div>
                                                         </div>
                                                         <a href="{{ route('courses.materials.download', [$course, $material]) }}" 
-                                                           class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                                                           class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 ">
                                                             @if($material->google_drive_url)
                                                                 <i class="fab fa-google-drive mr-2"></i>View on Drive
                                                             @else
@@ -390,7 +239,7 @@
                                 @endif
 
                                 <!-- Add content button -->
-                                <button onclick="showModal('materialModal'); document.getElementById('materialSection').value='{{ $sectionName }}'" class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition-colors add-section-btn">
+                                <button onclick="showModal('materialModal'); document.getElementById('materialSection').value='{{ $sectionName }}'" class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 ">
                                     <i class="fas fa-plus mr-2"></i>Add Content to This Section
                                 </button>
                             </div>
@@ -414,13 +263,15 @@
     </div>
 </div>
 
-<!-- Toast Notification Container -->
-<div id="toastContainer" class="toast-container"></div>
-
 <!-- Add Section Modal -->
-<div id="sectionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+<div id="sectionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.5);">
     <div class="bg-white rounded-xl max-w-md w-full p-6 border border-gray-300 shadow-2xl">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Add New Section</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Add New Section</h3>
+            <button onclick="closeSectionModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
         <form id="sectionForm" action="{{ route('courses.sections.store', $course) }}" method="POST">
             @csrf
             <div class="mb-4">
@@ -429,7 +280,7 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="flex justify-end space-x-3">
-                <button type="button" onclick="hideModal('sectionModal')" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                <button type="button" onclick="closeSectionModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
@@ -441,9 +292,14 @@
 </div>
 
 <!-- Add Material Modal -->
-<div id="materialModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+<div id="materialModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.5);">
     <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Add Course Material</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Add Course Material</h3>
+            <button onclick="closeMaterialModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
         <form id="materialForm" action="{{ route('courses.materials.store', $course) }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="space-y-4">
@@ -502,16 +358,31 @@
                 <!-- File Upload Field -->
                 <div id="fileField" class="material-field">
                     <label class="block text-sm font-medium text-gray-700 mb-3">File Upload</label>
-                    <div class="file-upload-area border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200">
-                        <div class="flex flex-col items-center">
-                            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-cloud-upload-alt text-2xl text-indigo-600"></i>
+                    <div id="fileUploadArea" class="file-upload-area border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:border-indigo-500 hover:bg-indigo-50 ">
+                        <div class="upload-content">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-cloud-upload-alt text-2xl text-indigo-600"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-800 mb-2">Choose File to Upload</h3>
+                                <p class="text-gray-500 mb-4">Drag and drop or click to browse</p>
+                                <input type="file" id="materialFile" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.gif" 
+                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                <p class="text-xs text-gray-400 mt-2">Supported: PDF, PPT, DOC, Images (Max: 10MB)</p>
                             </div>
-                            <h3 class="text-lg font-medium text-gray-800 mb-2">Choose File to Upload</h3>
-                            <p class="text-gray-500 mb-4">Drag and drop or click to browse</p>
-                            <input type="file" id="materialFile" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png,.gif" 
-                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                            <p class="text-xs text-gray-400 mt-2">Supported: PDF, PPT, DOC, Images (Max: 10MB)</p>
+                        </div>
+                        <div class="file-selected hidden">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-check text-2xl text-green-600"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-800 mb-2">File Selected</h3>
+                                <p id="selectedFileName" class="text-gray-600 mb-2"></p>
+                                <p id="selectedFileSize" class="text-sm text-gray-500 mb-4"></p>
+                                <button type="button" onclick="clearFileSelection()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                    <i class="fas fa-times mr-2"></i>Remove File
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -537,9 +408,14 @@
 </div>
 
 <!-- Edit Material Modal -->
-<div id="editMaterialModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+<div id="editMaterialModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.5);">
     <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 border border-gray-300 shadow-2xl">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Edit Material</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Edit Material</h3>
+            <button onclick="closeEditMaterialModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
         <form id="editMaterialForm" enctype="multipart/form-data">
             <input type="hidden" id="editMaterialId">
             <div class="space-y-4">
@@ -594,7 +470,7 @@
             </div>
 
             <div class="flex justify-end space-x-3 mt-6">
-                <button type="button" onclick="hideModal('editMaterialModal')" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                <button type="button" onclick="closeEditMaterialModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">

@@ -220,8 +220,7 @@ class AssignmentController extends Controller
         // Get user submission if student
         $userSubmission = null;
         if ($user->role === 'student') {
-            $userSubmission = DB::table('assignment_submissions')
-                ->where('assignment_id', $assignment->id)
+            $userSubmission = \App\Models\AssignmentSubmission::where('assignment_id', $assignment->id)
                 ->where('student_id', $user->id)
                 ->first();
         }
@@ -627,7 +626,10 @@ class AssignmentController extends Controller
         
         $submission = DB::table('assignment_submissions')->where('id', $submissionId)->first();
         if (!$submission) {
-            return response()->json(['success' => false, 'message' => 'Submission not found'], 404);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Submission not found'], 404);
+            }
+            return back()->withErrors(['error' => 'Submission not found']);
         }
         
         $assignment = Assignment::find($submission->assignment_id);
@@ -635,15 +637,22 @@ class AssignmentController extends Controller
         
         // Only the instructor who created the assignment can grade
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            return back()->withErrors(['error' => 'Unauthorized to grade this submission']);
         }
         
         // Validate grade is within assignment marks
         if ($request->grade > $assignment->marks) {
-            return response()->json(['success' => false, 'message' => 'Grade cannot exceed assignment marks'], 400);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Grade cannot exceed assignment marks'], 400);
+            }
+            return back()->withErrors(['error' => 'Grade cannot exceed assignment marks (' . $assignment->marks . ')']);
         }
         
         try {
+            // Update assignment submission
             DB::table('assignment_submissions')
                 ->where('id', $submissionId)
                 ->update([
@@ -653,11 +662,42 @@ class AssignmentController extends Controller
                     'graded_by' => $user->id,
                     'updated_at' => now()
                 ]);
-                
-            return response()->json(['success' => true, 'message' => 'Grade saved successfully']);
+            
+            // Create or update grade record for gradebook
+            $percentage = round(($request->grade / $assignment->marks) * 100, 2);
+            $letterGrade = $this->calculateLetterGrade($percentage);
+            
+            \App\Models\Grade::updateOrCreate(
+                [
+                    'student_id' => $submission->student_id,
+                    'course_id' => $assignment->course_id,
+                    'instructor_id' => $user->id,
+                    'gradeable_type' => \App\Models\AssignmentSubmission::class,
+                    'gradeable_id' => $submissionId
+                ],
+                [
+                    'points_earned' => $request->grade,
+                    'total_points' => $assignment->marks,
+                    'score' => $percentage,
+                    'letter_grade' => $letterGrade,
+                    'feedback' => $request->feedback,
+                    'graded_at' => now(),
+                    'grade_type' => 'assignment'
+                ]
+            );
+            
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Grade saved successfully']);
+            }
+            
+            return redirect()->route('instructor.assignments.submissions', $assignment->id)
+                ->with('success', 'Grade saved successfully for submission #' . $submissionId);
             
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to save grade'], 500);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Failed to save grade'], 500);
+            }
+            return back()->withErrors(['error' => 'Failed to save grade: ' . $e->getMessage()]);
         }
     }
 
@@ -1004,5 +1044,24 @@ class AssignmentController extends Controller
         }
 
         return view('assignments.view-submission', compact('submission', 'submissionFiles'));
+    }
+    
+    /**
+     * Calculate letter grade based on percentage
+     */
+    private function calculateLetterGrade($percentage): string
+    {
+        if ($percentage >= 93) return 'A';
+        if ($percentage >= 90) return 'A-';
+        if ($percentage >= 87) return 'B+';
+        if ($percentage >= 83) return 'B';
+        if ($percentage >= 80) return 'B-';
+        if ($percentage >= 77) return 'C+';
+        if ($percentage >= 73) return 'C';
+        if ($percentage >= 70) return 'C-';
+        if ($percentage >= 67) return 'D+';
+        if ($percentage >= 63) return 'D';
+        if ($percentage >= 60) return 'D-';
+        return 'F';
     }
 }

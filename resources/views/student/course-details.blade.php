@@ -152,7 +152,7 @@
                 </div>
                 @endforelse
 
-                <!-- Assignments Section -->
+                <!-- Assignments Section
                 @if($assignments && $assignments->count() > 0)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -182,7 +182,7 @@
                         @endforeach
                     </div>
                 </div>
-                @endif
+                @endif -->
             </div>
         </div>
     </div>

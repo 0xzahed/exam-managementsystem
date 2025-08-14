@@ -8,23 +8,6 @@
       </div>
       <form action="{{ route('courses.store') }}" method="POST" class="p-6 space-y-8">
           @csrf
-          @if ($errors->any())
-              <div class="rounded-md bg-red-50 p-4">
-                  <div class="flex">
-                      <div class="flex-shrink-0">
-                          <i class="fas fa-exclamation-triangle text-red-400"></i>
-                      </div>
-                      <div class="ml-3">
-                          <h3 class="text-sm font-medium text-red-800">Please fix the following:</h3>
-                          <ul class="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
-                              @foreach ($errors->all() as $error)
-                                  <li>{{ $error }}</li>
-                              @endforeach
-                          </ul>
-                      </div>
-                  </div>
-              </div>
-          @endif
           
           <!-- Course Title and Code -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -321,21 +321,23 @@
             </button>
         </div>
         
-        <form id="gradeForm" class="space-y-4">
+        <form id="gradeForm" method="POST" action="" class="space-y-4">
+            @csrf
+            <input type="hidden" id="submissionIdInput" name="submission_id" value="">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Grade (out of {{ $assignment->marks }})
                 </label>
-                <input type="number" id="gradeInput" min="0" max="{{ $assignment->marks }}" step="0.5"
+                <input type="number" id="gradeInput" name="grade" min="0" max="{{ $assignment->marks }}" step="0.5"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                       placeholder="Enter grade">
+                       placeholder="Enter grade" required>
             </div>
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Feedback (Optional)
                 </label>
-                <textarea id="feedbackInput" rows="4" 
+                <textarea id="feedbackInput" name="feedback" rows="4" 
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                           placeholder="Provide feedback to the student..."></textarea>
             </div>

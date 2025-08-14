@@ -23,5 +23,8 @@
 </head>
 <body class="auth-container">
     @yield('content')
+    
+    <!-- Toast Notifications -->
+    @include('components.toast')
 </body>
 </html>

@@ -288,7 +288,7 @@
                                 <span class="font-medium text-green-800">Submitted Successfully</span>
                             </div>
                             <p class="text-green-700 text-sm">
-                                Submitted on {{ $userSubmission->created_at->format('M j, Y \a\t g:i A') }}
+                                Submitted on {{ $userSubmission->created_at ? $userSubmission->created_at->format('M j, Y \a\t g:i A') : 'N/A' }}
                             </p>
                             @if($userSubmission->grade ?? null)
                             <p class="text-green-700 text-sm mt-1">
