@@ -104,18 +104,7 @@
 
 @section('content')
 <div class="px-2 py-4 sm:px-0 animate-fade-in-up">
-    <!-- Success/Error Messages -->
-    @if(session('success'))
-    <div class="px-4 py-3 mb-6 text-green-700 border border-green-200 rounded-lg bg-green-50">
-        <i class="mr-2 fas fa-check-circle"></i>{{ session('success') }}
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div class="px-4 py-3 mb-6 text-red-700 border border-red-200 rounded-lg bg-red-50">
-        <i class="mr-2 fas fa-exclamation-circle"></i>{{ session('error') }}
-    </div>
-    @endif
+    <!-- Flash messages are now handled by the central notification system -->
 
     <!-- Back Button -->
     <div class="mb-6">

@@ -499,16 +499,33 @@ class AssignmentController extends Controller
             'comments' => 'nullable|string|max:1000',
         ];
         
-        if ($assignment->submission_type === 'file' || $assignment->submission_type === 'both') {
+        if ($assignment->submission_type === 'file') {
+            // File submission only - file is required
+            $rules['submission_files'] = 'required|array|min:1|max:5';
+            $rules['submission_files.*'] = 'file|max:10240'; // 10MB per file
+        } elseif ($assignment->submission_type === 'text') {
+            // Text submission only - text is required
+            $rules['submission_text'] = 'required|string|max:10000';
+        } elseif ($assignment->submission_type === 'both') {
+            // Both allowed - at least one is required
             $rules['submission_files'] = 'nullable|array|max:5';
             $rules['submission_files.*'] = 'file|max:10240'; // 10MB per file
-        }
-        
-        if ($assignment->submission_type === 'text' || $assignment->submission_type === 'both') {
             $rules['submission_text'] = 'nullable|string|max:10000';
         }
         
         $validatedData = $request->validate($rules);
+        
+        // Additional validation for 'both' type - ensure at least one is provided
+        if ($assignment->submission_type === 'both') {
+            $hasFile = $request->hasFile('submission_files') && count($request->file('submission_files')) > 0;
+            $hasText = !empty($request->submission_text);
+            
+            if (!$hasFile && !$hasText) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['submission' => 'Please provide either a file or text submission.']);
+            }
+        }
         
         DB::beginTransaction();
         

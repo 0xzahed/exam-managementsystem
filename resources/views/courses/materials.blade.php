@@ -7,7 +7,6 @@
 @endsection
 
 @section('content')
-@include('components.flash')
 
 <div id="courseViewRoot" data-course-id="{{ $course->id }}" class="course-view max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Course Header -->
@@ -20,8 +19,8 @@
             </div>
             <div class="text-right">
                 <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-4">
-                    <div class="text-2xl font-bold">{{ $materials->count() }}</div>
-                    <div class="text-sm text-indigo-100">Total Materials</div>
+                    <div class="text-2xl font-bold text-black">{{ $materials->count() }}</div>
+                    <div class="text-sm text-black">Total Materials</div>
                 </div>
                 <a href="{{ route('courses.manage') }}" class="inline-flex items-center px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Courses

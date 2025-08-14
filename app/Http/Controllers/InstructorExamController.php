@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Exam;
 use App\Models\ExamQuestion;
+use App\Models\ExamAttempt;
+use App\Models\ExamAnswer;
 use App\Models\Course;
 use App\Models\User;
 use App\Services\GoogleDriveService;
+use App\Traits\FlashMessageTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +18,7 @@ use Carbon\Carbon;
 
 class InstructorExamController extends Controller
 {
+    use FlashMessageTrait;
     protected $googleDriveService;
 
     public function __construct(GoogleDriveService $googleDriveService)
@@ -157,21 +161,20 @@ class InstructorExamController extends Controller
 
             DB::commit();
 
+            $successMessage = 'Exam "' . $exam->title . '" created successfully!';
+
             // Check if user wants to create another exam
             if ($request->has('create_another')) {
-                return redirect()->route('instructor.exams.create')
-                    ->with('success', '🎉 Exam "' . $exam->title . '" created and published successfully! Students will see it at the scheduled time. You can now create another exam.');
+                return $this->flashSuccess($successMessage, 'instructor.exams.create');
             }
             
             // Check if user wants to go to exam details
             if ($request->has('go_to_details')) {
-                return redirect()->route('instructor.exams.show', $exam)
-                    ->with('success', '🎉 Exam "' . $exam->title . '" created and published successfully! Students will see it at the scheduled time.');
+                return $this->flashSuccess($successMessage, 'instructor.exams.show', [$exam]);
             }
             
             // Default: go to exam index (list)
-            return redirect()->route('instructor.exams.index')
-                ->with('success', '🎉 Exam "' . $exam->title . '" created and published successfully! Students will see it at the scheduled time.');
+            return $this->flashSuccess($successMessage, 'instructor.exams.index');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -320,8 +323,7 @@ class InstructorExamController extends Controller
 
             DB::commit();
 
-            return redirect()->route('instructor.exams.show', $exam)
-                ->with('success', 'Exam updated successfully!');
+            return $this->flashSuccess('Exam updated successfully!', 'instructor.exams.show', [$exam]);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -341,8 +343,7 @@ class InstructorExamController extends Controller
         try {
             $exam->delete();
             
-            return redirect()->route('instructor.exams.index')
-                ->with('success', 'Exam deleted successfully!');
+            return $this->flashSuccess('Exam deleted successfully!', 'instructor.exams.index');
                 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete exam: ' . $e->getMessage()]);
@@ -378,6 +379,115 @@ class InstructorExamController extends Controller
             ->get();
         
         return view('exams.instructor.attempts', compact('exam', 'attempts'));
+    }
+
+    /**
+     * View individual attempt details for grading
+     */
+    public function viewAttempt(Exam $exam, ExamAttempt $attempt)
+    {
+        $this->authorizeExamAccess($exam);
+        
+        // Ensure this attempt belongs to this exam
+        if ($attempt->exam_id !== $exam->id) {
+            abort(404);
+        }
+        
+        // Load attempt with all related data
+        $attempt->load([
+            'student',
+            'examAnswers.examQuestion',
+            'exam.course'
+        ]);
+        
+        // Load exam questions for max score calculation
+        $exam->load('questions');
+        
+        return view('exams.instructor.view-attempt', compact('exam', 'attempt'));
+    }
+
+    /**
+     * Grade individual attempt and save to gradebook
+     */
+    public function gradeAttempt(Request $request, Exam $exam, ExamAttempt $attempt)
+    {
+        $this->authorizeExamAccess($exam);
+        
+        // Ensure this attempt belongs to this exam
+        if ($attempt->exam_id !== $exam->id) {
+            abort(404);
+        }
+        
+        // Load exam questions for calculating max score
+        $exam->load('questions');
+        
+        // Validate request
+        $request->validate([
+            'grades' => 'required|array',
+            'grades.*' => 'numeric|min:0',
+            'feedback' => 'nullable|string',
+            'total_score' => 'required|numeric|min:0'
+        ]);
+        
+        try {
+            DB::beginTransaction();
+            
+            // Update individual question grades
+            foreach ($request->grades as $answerId => $points) {
+                ExamAnswer::where('id', $answerId)
+                    ->where('exam_attempt_id', $attempt->id)
+                    ->update(['points_awarded' => $points]);
+            }
+            
+            // Calculate percentage score
+            $maxScore = $exam->questions->sum('points');
+            
+            if ($maxScore <= 0) {
+                throw new \Exception('Exam has no questions or invalid points');
+            }
+            
+            $percentage = ($request->total_score / $maxScore) * 100;
+            
+            // Update attempt with final score
+            $attempt->update([
+                'total_score' => $request->total_score,
+                'status' => 'graded'
+            ]);
+            
+            // Add to gradebook (simple approach)
+            \App\Models\Grade::updateOrCreate([
+                'student_id' => $attempt->student_id,
+                'course_id' => $exam->course_id,
+                'gradeable_type' => 'App\\Models\\Exam',
+                'gradeable_id' => $exam->id,
+            ], [
+                'instructor_id' => Auth::id(),
+                'points_earned' => $request->total_score,
+                'points_possible' => $maxScore,
+                'percentage' => round($percentage, 2),
+                'feedback' => $request->feedback,
+                'graded_at' => now(),
+                'graded_by' => Auth::id()
+            ]);
+            
+            DB::commit();
+            
+            return $this->flashSuccess(
+                "Exam graded successfully! Score: {$request->total_score}/{$maxScore} (" . round($percentage, 1) . "%)",
+                'instructor.exams.attempts',
+                [$exam]
+            );
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Exam grading failed: ' . $e->getMessage());
+            
+            return $this->flashError(
+                'Failed to grade exam: ' . $e->getMessage(),
+                'instructor.exams.view-attempt',
+                [$exam, $attempt]
+            );
+        }
     }
 
     /**

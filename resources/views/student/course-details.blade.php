@@ -25,12 +25,6 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-6 lg:mt-0">
-                <div class="bg-white bg-opacity-20 rounded-lg p-4 text-center">
-                    <i class="fas fa-graduation-cap text-3xl mb-2"></i>
-                    <p class="text-sm font-medium">Enrolled Student</p>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -171,7 +165,7 @@
                                     <p class="text-gray-600 text-sm mb-3">{{ Str::limit($assignment->description, 120) }}</p>
                                     <div class="flex items-center text-sm text-gray-600 space-x-4">
                                         <span><i class="fas fa-calendar mr-1"></i>Due: {{ $assignment->due_date ? $assignment->due_date->format('M j, Y') : 'No due date' }}</span>
-                                        <span><i class="fas fa-star mr-1"></i>{{ $assignment->points ?? 0 }} points</span>
+                                        <span><i class="fas fa-star mr-1"></i>{{ $assignment->points ?? 0 }} marks</span>
                                     </div>
                                 </div>
                                 <a href="{{ route('assignments.show', $assignment->id) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">

@@ -19,10 +19,13 @@ class Grade extends Model
         'gradeable_id',
         'score',
         'points_earned',
+        'points_possible',
         'total_points',
+        'percentage',
         'letter_grade',
         'feedback',
         'graded_at',
+        'graded_by',
         'grade_type'
     ];
 

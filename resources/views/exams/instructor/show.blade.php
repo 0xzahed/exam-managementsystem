@@ -39,7 +39,7 @@
                     </div>
                     <div class="bg-green-50 rounded-lg p-4">
                         <div class="text-2xl font-bold text-green-600">{{ $exam->total_points ?: $exam->questions->sum('points') }}</div>
-                        <div class="text-sm text-gray-600">Total Points</div>
+                        <div class="text-sm text-gray-600">Total Marks</div>
                     </div>
                     <div class="bg-yellow-50 rounded-lg p-4">
                         <div class="text-2xl font-bold text-yellow-600">{{ $exam->duration_minutes }}</div>
@@ -72,7 +72,7 @@
                                             {{ ucfirst(str_replace('_', ' ', $question->type)) }}
                                         </span>
                                         <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
-                                            {{ $question->points }} {{ $question->points == 1 ? 'point' : 'points' }}
+                                            {{ $question->points }} {{ $question->points == 1 ? 'mark' : 'marks' }}
                                         </span>
                                     </div>
                                 </div>

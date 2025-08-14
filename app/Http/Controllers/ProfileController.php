@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class ProfileController extends Controller
@@ -38,11 +40,11 @@ class ProfileController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'profile_photo' => 'nullable|image|max:2048',
+            'profile_photo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:5120', // 5MB max
             'password' => 'nullable|string|min:8|confirmed',
             // Student fields
             'phone' => 'nullable|string|max:20',
-            'year_of_study' => 'nullable|integer|min:1|max:8',
+            'year_of_study' => 'nullable|integer|min:1|max:4',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|in:male,female,other',
             'bio' => 'nullable|string|max:500',
@@ -60,11 +62,36 @@ class ProfileController extends Controller
         ]);
         // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
-            $service = new GoogleDriveService();
-            $fullName = $user->first_name . ' ' . $user->last_name;
-            $upload = $service->uploadProfilePhoto($request->file('profile_photo'), $fullName);
-            if ($upload && isset($upload['url'])) {
-                $user->avatar = $upload['url'];
+            Log::info('Profile photo upload started for user: ' . $user->id);
+            
+            try {
+                $file = $request->file('profile_photo');
+                
+                // Validate file
+                if (!$file->isValid()) {
+                    throw new \Exception('Invalid file upload');
+                }
+                
+                // Generate unique filename
+                $filename = 'profile_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                
+                // Store file in public/storage/profile_photos directory
+                $path = $file->storeAs('profile_photos', $filename, 'public');
+                
+                Log::info('Profile photo stored at: ' . $path);
+                
+                // Delete old profile photo if exists
+                if ($user->profile_photo && strpos($user->profile_photo, 'profile_photos/') !== false) {
+                    Storage::disk('public')->delete($user->profile_photo);
+                }
+                
+                // Save new path to user
+                $user->profile_photo = $path;
+                Log::info('Profile photo path saved: ' . $path);
+                
+            } catch (\Exception $e) {
+                Log::error('Profile photo upload failed: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Failed to upload profile photo. Please try again.');
             }
         }
         // Assign common fields
@@ -99,6 +126,30 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->password);
         }
         $user->save();
-        return redirect()->route('profile.settings')->with('success', 'Profile updated successfully.');
+        return redirect()->route('profile.settings', ['success' => 1])->with('success', 'Profile updated successfully.');
+    }
+
+    /**
+     * Update user password.
+     */
+    public function password(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Check if current password matches
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('profile.settings', ['success' => 1])->with('success', 'Password updated successfully.');
     }
 }

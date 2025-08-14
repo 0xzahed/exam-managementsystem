@@ -135,14 +135,44 @@ function formatFileSize(bytes) {
 }
 
 /**
- * Initialize form UI interactions - no validation logic
+ * Initialize form UI interactions and validation
  */
 function initializeFormUI() {
     const form = document.getElementById('submissionForm');
     if (!form) return;
 
     form.addEventListener('submit', function(e) {
-        // Show loading state only
+        // Get assignment submission type from data attribute or form context
+        const submissionTypeElement = document.querySelector('[data-submission-type]');
+        const submissionType = submissionTypeElement ? submissionTypeElement.dataset.submissionType : 'file';
+        
+        // Validate based on submission type
+        const fileInput = document.getElementById('fileInput');
+        const textInput = document.querySelector('textarea[name="submission_text"]');
+        
+        let hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+        let hasText = textInput && textInput.value.trim().length > 0;
+        
+        // Validation logic
+        if (submissionType === 'file' && !hasFile) {
+            e.preventDefault();
+            showError('Please select at least one file to upload.');
+            return false;
+        }
+        
+        if (submissionType === 'text' && !hasText) {
+            e.preventDefault();
+            showError('Please enter your assignment text.');
+            return false;
+        }
+        
+        if (submissionType === 'both' && !hasFile && !hasText) {
+            e.preventDefault();
+            showError('Please provide either a file upload or text submission.');
+            return false;
+        }
+        
+        // Show loading state
         const submitButton = form.querySelector('button[type="submit"]');
         if (submitButton) {
             const originalText = submitButton.innerHTML;
@@ -196,32 +226,19 @@ function hideTooltip() {
     }
 }
 
-/**
- * Show success message - UI feedback only
- */
-function showSuccessMessage(message) {
-    const successDiv = document.createElement('div');
-    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-    successDiv.innerHTML = `
-        <div class="flex items-center gap-2">
-            <i class="fas fa-check-circle"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(successDiv);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        successDiv.classList.add('opacity-0', 'transform', 'translate-x-full');
-        setTimeout(() => {
-            if (successDiv.parentNode) {
-                successDiv.remove();
-            }
-        }, 300);
-    }, 3000);
-}
-
 // Make functions globally available for UI interactions only
 window.clearFile = clearFile;
+
+/**
+ * Show error message using notification system
+ */
+function showError(message) {
+    if (window.notificationManager) {
+        window.notificationManager.show(message, 'error');
+    } else if (window.showError) {
+        window.showError(message);
+    } else {
+        alert(message);
+    }
+}
 window.showSuccessMessage = showSuccessMessage;

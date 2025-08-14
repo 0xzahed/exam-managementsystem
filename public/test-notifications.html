@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System Test</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Test success and error messages -->
+    <meta name="session-success" content="This is a test success message from session">
+    <meta name="session-error" content="This is a test error message from session">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Notification System Test</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Different Notification Types</h2>
+            
+            <div class="space-y-4">
+                <button onclick="testSuccess()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Test Success Message
+                </button>
+                
+                <button onclick="testError()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Test Error Message
+                </button>
+                
+                <button onclick="testWarning()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                    Test Warning Message
+                </button>
+                
+                <button onclick="testInfo()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Test Info Message
+                </button>
+                
+                <button onclick="testDuplicate()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                    Test Duplicate Prevention
+                </button>
+                
+                <button onclick="clearAll()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Clear All Notifications
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Console Output</h2>
+            <div id="console" class="bg-gray-100 p-4 rounded text-sm font-mono h-40 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Load our notification system -->
+    <script src="/build/assets/app-DMMStHnP.js"></script>
+    
+    <script>
+        // Test functions
+        function testSuccess() {
+            if (window.showSuccess) {
+                window.showSuccess('This is a success message!');
+                log('Called showSuccess()');
+            } else {
+                log('showSuccess not available');
+            }
+        }
+        
+        function testError() {
+            if (window.showError) {
+                window.showError('This is an error message!');
+                log('Called showError()');
+            } else {
+                log('showError not available');
+            }
+        }
+        
+        function testWarning() {
+            if (window.showWarning) {
+                window.showWarning('This is a warning message!');
+                log('Called showWarning()');
+            } else {
+                log('showWarning not available');
+            }
+        }
+        
+        function testInfo() {
+            if (window.showInfo) {
+                window.showInfo('This is an info message!');
+                log('Called showInfo()');
+            } else {
+                log('showInfo not available');
+            }
+        }
+        
+        function testDuplicate() {
+            if (window.showSuccess) {
+                window.showSuccess('Duplicate test message');
+                window.showSuccess('Duplicate test message');
+                window.showSuccess('Duplicate test message');
+                log('Called showSuccess() 3 times with same message');
+            } else {
+                log('showSuccess not available');
+            }
+        }
+        
+        function clearAll() {
+            if (window.notificationManager) {
+                window.notificationManager.clearAll();
+                log('Called clearAll()');
+            } else {
+                log('notificationManager not available');
+            }
+        }
+        
+        function log(message) {
+            const console = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+            console.innerHTML += `[${time}] ${message}\n`;
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        // Log when ready
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM Content Loaded');
+            
+            setTimeout(() => {
+                if (window.notificationManager) {
+                    log('NotificationManager loaded successfully');
+                } else {
+                    log('NotificationManager not found');
+                }
+                
+                if (window.showSuccess) {
+                    log('showSuccess function available');
+                } else {
+                    log('showSuccess function not available');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

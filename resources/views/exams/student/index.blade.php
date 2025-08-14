@@ -219,7 +219,7 @@
                                     </div>
                                     <p class="text-green-700">
                                         <span class="text-2xl font-bold">{{ $attempt->score ?? 0 }}%</span>
-                                        <span class="text-sm ml-2">({{ $attempt->marks_obtained ?? 0 }}/{{ $exam->total_marks ?? 100 }} points)</span>
+                                        <span class="text-sm ml-2">({{ $attempt->marks_obtained ?? 0 }}/{{ $exam->total_marks ?? 100 }} marks)</span>
                                     </p>
                                     @if($attempt->completed_at)
                                     <p class="text-green-600 text-sm mt-1">

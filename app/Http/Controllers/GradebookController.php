@@ -452,16 +452,16 @@ class GradebookController extends Controller
      */
     private function syncExamGrades($course)
     {
-        // Get all completed exam attempts for this course that don't have Grade records yet
+        // Get all completed/graded exam attempts for this course
         $completedAttempts = DB::table('exam_attempts')
             ->join('exams', 'exam_attempts.exam_id', '=', 'exams.id')
             ->where('exams.course_id', $course->id)
             ->whereNotNull('exam_attempts.total_score')
             ->whereNotNull('exam_attempts.submitted_at')
-            ->where('exam_attempts.status', 'completed')
+            ->whereIn('exam_attempts.status', ['completed', 'graded', 'submitted', 'auto_submitted'])
             ->select(
                 'exam_attempts.*',
-                'exams.total_points as max_points',
+                'exams.total_points as exam_total_points',
                 'exams.instructor_id'
             )
             ->get();
@@ -471,14 +471,14 @@ class GradebookController extends Controller
             $existingGrade = Grade::where([
                 'student_id' => $attempt->student_id,
                 'course_id' => $course->id,
-                'gradeable_type' => ExamAttempt::class,
-                'gradeable_id' => $attempt->id
+                'gradeable_type' => 'App\\Models\\Exam',
+                'gradeable_id' => $attempt->exam_id
             ])->first();
             
             if (!$existingGrade) {
                 // Calculate percentage and letter grade
-                $maxScore = $attempt->max_points ?: $attempt->max_score ?: 100;
-                $percentage = round(($attempt->total_score / $maxScore) * 100, 2);
+                $maxScore = $attempt->exam_total_points ?: $attempt->max_score ?: 100;
+                $percentage = $maxScore > 0 ? round(($attempt->total_score / $maxScore) * 100, 2) : 0;
                 $letterGrade = $this->calculateLetterGrade($percentage);
                 
                 // Create Grade record
@@ -486,11 +486,13 @@ class GradebookController extends Controller
                     'student_id' => $attempt->student_id,
                     'course_id' => $course->id,
                     'instructor_id' => $attempt->instructor_id,
-                    'gradeable_type' => ExamAttempt::class,
-                    'gradeable_id' => $attempt->id,
+                    'gradeable_type' => 'App\\Models\\Exam',
+                    'gradeable_id' => $attempt->exam_id,
                     'points_earned' => $attempt->total_score,
+                    'points_possible' => $maxScore,
                     'total_points' => $maxScore,
                     'score' => $percentage,
+                    'percentage' => $percentage,
                     'letter_grade' => $letterGrade,
                     'feedback' => null,
                     'graded_at' => $attempt->submitted_at,

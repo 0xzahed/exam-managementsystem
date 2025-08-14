@@ -339,31 +339,6 @@ function updateAssignment() {
 }
 
 /**
- * Show error message
- */
-function showError(message) {
-    hideError(); // Remove any existing error
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
-    errorDiv.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-circle mr-2"></i>
-            <span>${message}</span>
-            <button onclick="hideError()" class="ml-4 text-red-500 hover:text-red-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    errorDiv.id = 'error-message';
-    
-    document.body.appendChild(errorDiv);
-    
-    // Auto-hide after 5 seconds
-    setTimeout(hideError, 5000);
-}
-
-/**
  * Hide error message
  */
 function hideError() {
@@ -400,32 +375,6 @@ function hideLoading() {
     if (loadingDiv) {
         loadingDiv.remove();
     }
-}
-
-/**
- * Show success message
- */
-function showSuccess(message) {
-    hideError();
-    hideLoading();
-    
-    const successDiv = document.createElement('div');
-    successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
-    successDiv.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span>${message}</span>
-            <button onclick="hideSuccess()" class="ml-4 text-green-500 hover:text-green-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    successDiv.id = 'success-message';
-    
-    document.body.appendChild(successDiv);
-    
-    // Auto-hide after 3 seconds
-    setTimeout(hideSuccess, 3000);
 }
 
 /**

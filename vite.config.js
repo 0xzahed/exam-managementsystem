@@ -23,7 +23,8 @@ export default defineConfig({
                 'resources/js/pages/exams/create.js',
                 'resources/js/pages/exams/take.js',
                 'resources/js/pages/announcements-index.js',
-                'resources/js/pages/profile-student-settings.js'
+                'resources/js/pages/profile-student-settings.js',
+                'resources/js/pages/profile-instructor-settings.js'
             ],
             refresh: true,
         }),

@@ -4,7 +4,7 @@
 
 @section('head')
 <!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/4gukmwnqwk4bolj1vsoqqsxtiqtz8984n4baxsqeratjgw5g/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+<script src="https://cdn.tiny.cloud/1/4gukmwnqwk4bolj1vsoqqsxtiqtz8984n4baxsqeratjgw5g/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 @endsection
 
 @section('content')
@@ -76,8 +76,7 @@
 			<!-- Content -->
 			<div class="mb-6">
 				<label for="content" class="block text-sm font-medium text-gray-700 mb-2">Announcement Details <span class="text-red-500">*</span></label>
-				<textarea id="content" name="content" rows="8" required
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+				<textarea id="content" name="content" rows="8" required class="tinymce w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 					placeholder="Enter the announcement details...">{{ old('content') }}</textarea>
 				@error('content')
 				<p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -110,38 +109,12 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdn.tiny.cloud/1/4gukmwnqwk4bolj1vsoqqsxtiqtz8984n4baxsqeratjgw5g/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="{{ asset('js/tinymce-config.js') }}"></script>
 <script>
-tinymce.init({
-    selector: '#content',
-    height: 400,
-    plugins: [
-        // Core editing features
-        'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-        // Premium features (trial until Aug 26, 2025)
-        'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'ai', 'uploadcare', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-    ],
-    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography uploadcare | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
-    branding: false,
-    promotion: false,
-    menubar: false,
-    statusbar: true,
-    resize: true,
-    tinycomments_mode: 'embedded',
-    tinycomments_author: '{{ auth()->user()->first_name ?? "Author" }}',
-    mergetags_list: [
-        { value: 'Student.Name', title: 'Student Name' },
-        { value: 'Course.Title', title: 'Course Title' },
-        { value: 'Instructor.Name', title: 'Instructor Name' },
-        { value: 'Date.Today', title: 'Today\'s Date' },
-    ],
-    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('AI Assistant not configured')),
-    uploadcare_public_key: '32534477b6af0bb49379',
-    setup: function (editor) {
-        editor.on('change', function () {
-            editor.save();
-        });
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize TinyMCE for announcements
+    TinyMCEConfigs.announcement();
 });
 </script>
 @endsection

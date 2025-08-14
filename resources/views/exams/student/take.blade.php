@@ -28,8 +28,15 @@
                         </div>
                     </div>
                     <div id="autoSaveStatus" class="text-sm text-gray-500">
-                        <span class="saving hidden">Saving...</span>
-                        <span class="saved">All changes saved</span>
+                        <span class="saving hidden">
+                            <i class="fas fa-spinner fa-spin mr-1"></i>Saving...
+                        </span>
+                        <span class="saved">
+                            <i class="fas fa-check text-green-500 mr-1"></i>All changes saved
+                        </span>
+                        <span class="error hidden">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>Save failed
+                        </span>
                     </div>
                     <button type="button" id="submitExamBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">Submit Exam</button>
                 </div>
@@ -47,7 +54,7 @@
                         <p class="text-lg text-gray-900">{{ $exam->questions->count() }}</p>
                     </div>
                     <div>
-                        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Points</h3>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Marks</h3>
                         <p class="text-lg text-gray-900">{{ $exam->total_points }}</p>
                     </div>
                 </div>
@@ -107,7 +114,7 @@
                                 </div>
                             </div>
                             <div class="ml-4 text-right">
-                                <span class="text-sm text-gray-500">Points:</span>
+                                <span class="text-sm text-gray-500">Marks:</span>
                                 <span class="font-medium text-gray-900">{{ $question->points }}</span>
                             </div>
                         </div>
@@ -300,7 +307,7 @@
         'durationMinutes' => $exam->duration_minutes,
         'startTime' => $attempt->started_at->toIso8601String(),
         'totalQuestions' => $exam->questions->count(),
-        'autoSaveInterval' => 30000,
+        'autoSaveInterval' => 15000, // Save every 15 seconds
         'routes' => [
             'saveAnswer' => route('student.exams.save-answer', $exam),
             'submit' => route('student.exams.submit', $exam),
@@ -312,7 +319,7 @@
 <div id="examConfigData" data-config='@json($examConfig)'></div>
 
 <script>
-    // Hydrate examConfig from data attribute to keep inline JS linter-friendly
+    // Load exam configuration
     (function() {
         var cfgEl = document.getElementById('examConfigData');
         if (cfgEl) {
@@ -325,66 +332,6 @@
             }
         }
     })();
-
-    // Immediate timer initialization as fallback
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, initializing timer...');
-        const timerElement = document.getElementById('timer');
-        
-        if (timerElement && window.examConfig) {
-            console.log('Timer element and config found, starting timer...');
-            
-            // Calculate initial time remaining
-            const startTime = new Date(window.examConfig.startTime);
-            const now = new Date();
-            const elapsedSeconds = Math.floor((now - startTime) / 1000);
-            let timeRemaining = Math.max(0, window.examConfig.durationMinutes * 60 - elapsedSeconds);
-            
-            console.log('Timer Debug:', {
-                startTime: startTime.toISOString(),
-                now: now.toISOString(),
-                elapsedSeconds: elapsedSeconds,
-                durationMinutes: window.examConfig.durationMinutes,
-                timeRemaining: timeRemaining
-            });
-            
-            // Update timer display immediately
-            function updateTimer() {
-                if (timeRemaining <= 0) {
-                    timerElement.textContent = '00:00:00';
-                    timerElement.className = 'font-mono text-lg font-bold text-red-600';
-                    return;
-                }
-                
-                const hours = Math.floor(timeRemaining / 3600);
-                const minutes = Math.floor((timeRemaining % 3600) / 60);
-                const seconds = timeRemaining % 60;
-                
-                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                timerElement.textContent = timeString;
-                
-                // Change color based on time remaining
-                if (timeRemaining <= 5 * 60) { // 5 minutes
-                    timerElement.className = 'font-mono text-lg font-bold text-red-600';
-                } else if (timeRemaining <= 15 * 60) { // 15 minutes
-                    timerElement.className = 'font-mono text-lg font-bold text-yellow-600';
-                } else {
-                    timerElement.className = 'font-mono text-lg font-bold text-green-600';
-                }
-                
-                timeRemaining--;
-            }
-            
-            // Start timer immediately
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        } else {
-            console.error('Timer element or exam config not found:', {
-                timerElement: !!timerElement,
-                examConfig: !!window.examConfig
-            });
-        }
-    });
 </script>
 @vite('resources/js/pages/exams/take.js')
 @endpush

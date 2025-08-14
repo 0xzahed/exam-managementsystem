@@ -14,30 +14,19 @@
         .form-input:disabled { background:#f3f4f6; color:#6b7280; cursor:not-allowed; }
     </style>
 
-    @if(session('status'))
-        <div class="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2 rounded flex items-center gap-2">
-            <i class="fas fa-check-circle"></i> {{ session('status') }}
-        </div>
-    @endif
-    @if($errors->any())
-        <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded space-y-1">
-            @foreach($errors->all() as $err)
-                <div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i><span>{{ $err }}</span></div>
-            @endforeach
-        </div>
-    @endif
+    <!-- Flash messages are now handled by the central notification system -->
 
     <!-- Header Card -->
     <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow">
         <div class="relative">
             @if($photoUrl)
-                <img src="{{ $photoUrl }}" class="h-28 w-28 rounded-full object-cover profile-photo-preview ring-4 ring-white/30" alt="Profile"/>
+                <img id="profile-preview" src="{{ $photoUrl }}" class="h-28 w-28 rounded-full object-cover profile-photo-preview ring-4 ring-white/30" alt="Profile"/>
             @else
-                <div class="h-28 w-28 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-4xl font-semibold profile-photo-preview">{{ strtoupper(substr($user->first_name,0,1)) }}</div>
+                <div id="profile-preview" class="h-28 w-28 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-4xl font-semibold profile-photo-preview">{{ strtoupper(substr($user->first_name,0,1)) }}</div>
             @endif
             <label class="absolute -bottom-2 -right-2 bg-white text-purple-600 rounded-full h-9 w-9 flex items-center justify-center shadow cursor-pointer hover:scale-105 transition" title="Change Photo">
                 <i class="fas fa-camera text-sm"></i>
-                <input type="file" id="profile-photo-input" name="profile_photo" form="instructor-profile-form" accept="image/*" class="hidden"/>
+                <input type="file" id="profile_picture" name="profile_photo" form="profileForm" accept="image/*" class="hidden"/>
             </label>
         </div>
         <div class="flex-1 w-full">
@@ -55,9 +44,32 @@
         </div>
     </div>
 
-    <form id="instructor-profile-form" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-10">
+    <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-10">
         @csrf
         @method('PUT')
+        
+        <!-- Basic Information -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+            <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-user text-sm"></i></div>
+                <h2 class="text-lg font-semibold text-gray-800">Basic Information</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="form-label" for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $user->first_name) }}" class="form-input" required/>
+                </div>
+                <div>
+                    <label class="form-label" for="last_name">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $user->last_name) }}" class="form-input" required/>
+                </div>
+                <div>
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-input" required/>
+                </div>
+            </div>
+        </div>
+        
         <!-- Professional & Contact Details -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
             <div class="flex items-center gap-2">
@@ -153,7 +165,7 @@
             <div class="h-8 w-8 rounded bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-lock text-sm"></i></div>
             <h2 class="text-lg font-semibold text-gray-800">Password</h2>
         </div>
-        <form action="{{ route('profile.password') }}" method="POST" class="grid md:grid-cols-3 gap-4 items-end">
+        <form id="passwordForm" action="{{ route('profile.password') }}" method="POST" class="grid md:grid-cols-3 gap-4 items-end">
             @csrf
             @method('PUT')
             <div>
@@ -161,15 +173,16 @@
                 <input required type="password" name="current_password" id="current_password" class="form-input"/>
             </div>
             <div>
-                <label class="form-label" for="password">New</label>
-                <input required type="password" name="password" id="password" class="form-input"/>
+                <label class="form-label" for="new_password">New</label>
+                <input required type="password" name="password" id="new_password" class="form-input"/>
             </div>
             <div>
-                <label class="form-label" for="password_confirmation">Confirm</label>
-                <input required type="password" name="password_confirmation" id="password_confirmation" class="form-input"/>
+                <label class="form-label" for="new_password_confirmation">Confirm</label>
+                <input required type="password" name="password_confirmation" id="new_password_confirmation" class="form-input"/>
+                <div id="password-match-message"></div>
             </div>
             <div class="md:col-span-3 flex justify-end">
-                <button class="px-6 py-2 rounded bg-gray-800 hover:bg-black text-white text-sm font-medium shadow-sm">Update Password</button>
+                <button type="submit" class="px-6 py-2 rounded bg-gray-800 hover:bg-black text-white text-sm font-medium shadow-sm">Update Password</button>
             </div>
         </form>
     </div>

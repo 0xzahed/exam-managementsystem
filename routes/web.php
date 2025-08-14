@@ -98,8 +98,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/profile/settings', [App\Http\Controllers\ProfileController::class, 'update'])
         ->middleware('auth')
         ->name('profile.update');
-        // Profile password change route
-        Route::get('/profile/password', [App\Http\Controllers\ProfileController::class, 'password'])->name('profile.password');
+    // Profile password change route
+    Route::put('/profile/password', [App\Http\Controllers\ProfileController::class, 'password'])->name('profile.password');
 
     // Course Routes for Instructors
 Route::middleware(['auth', 'role:instructor'])->group(function () {
@@ -411,6 +411,8 @@ Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'role:inst
     Route::resource('exams', InstructorExamController::class);
     Route::get('exams/{exam}/results', [InstructorExamController::class, 'results'])->name('exams.results');
     Route::get('exams/{exam}/attempts', [InstructorExamController::class, 'attempts'])->name('exams.attempts');
+    Route::get('exams/{exam}/attempts/{attempt}', [InstructorExamController::class, 'viewAttempt'])->name('exams.view-attempt');
+    Route::post('exams/{exam}/attempts/{attempt}/grade', [InstructorExamController::class, 'gradeAttempt'])->name('exams.grade-attempt');
     
     // Announcement routes
     Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');

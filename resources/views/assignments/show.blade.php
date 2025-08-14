@@ -103,9 +103,9 @@
                     <div class="bg-gray-50 rounded-lg p-4">
                         <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-star text-yellow-500"></i>
-                            <span class="font-medium text-gray-700">Points</span>
+                            <span class="font-medium text-gray-700">Marks</span>
                         </div>
-                        <p class="text-gray-900 font-semibold">{{ $assignment->marks ?? 100 }} points</p>
+                        <p class="text-gray-900 font-semibold">{{ $assignment->marks ?? 100 }} marks</p>
                     </div>
 
                     <div class="bg-gray-50 rounded-lg p-4">
@@ -336,7 +336,7 @@
 
                     @if($canSubmit && (!$isOverdue || ($assignment->allow_late_submission ?? false)))
                         <!-- Submission Form -->
-                        <form action="{{ route('assignments.process-submission', $assignment) }}" method="POST" enctype="multipart/form-data" id="submissionForm" data-allowed='@json($assignment->allowed_file_types ?? [])'>
+                        <form action="{{ route('assignments.process-submission', $assignment) }}" method="POST" enctype="multipart/form-data" id="submissionForm" data-allowed='@json($assignment->allowed_file_types ?? [])' data-submission-type="{{ $assignment->submission_type }}">
                             @csrf
 
                             @if($assignment->submission_type === 'file' || $assignment->submission_type === 'both')

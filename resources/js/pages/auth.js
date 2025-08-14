@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // password strength and confirm
       if (pwd.value.length < 8) {
         hasError = true;
-        alert('Password must be at least 8 characters.');
+        showError('Password must be at least 8 characters.');
       }
       if (pwd.value !== pwd2.value) {
         hasError = true;
-        alert('Password confirmation does not match.');
+        showError('Password confirmation does not match.');
       }
 
       // ID must be present once a role picked
@@ -240,13 +240,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Forgot password handler
-        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-        if (forgotPasswordLink) {
-            forgotPasswordLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                alert('Forgot password functionality will be implemented soon!');
-            });
-        }
+        document.getElementById('forgotPasswordLink')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            showInfo('Forgot password functionality will be implemented soon!');
+        });
         
         // Register link handler
         const registerLink = document.getElementById('registerLink');
@@ -279,17 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const submitLoader = document.getElementById('submitLoader');
         const roleError = document.getElementById('roleError');
         
-        // Session message handling
-        const sessionError = document.body.getAttribute('data-session-error');
-        const sessionSuccess = document.body.getAttribute('data-session-success');
-        
-        if (sessionError) {
-            showMessage(sessionError, 'error');
-        }
-        
-        if (sessionSuccess) {
-            showMessage(sessionSuccess, 'success');
-        }
+        // Session messages are now handled by NotificationManager automatically
+        // No need for manual session message processing here
         
         // Role selection functionality
         roleCards.forEach(card => {
@@ -461,30 +449,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // SHARED FUNCTIONS
     // ===========================================
     
-    // Show error message (shared for both pages)
-    function showError(message) {
-        // Remove existing error messages
-        const existingError = document.querySelector('.error-message');
-        if (existingError) {
-            existingError.remove();
-        }
-        
-        // Create new error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-500/20 border border-red-400/30 rounded-lg p-3 mt-4 text-red-300 text-sm';
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
-        
-        // Insert before submit button
-        const submitButton = document.getElementById('loginButton') || document.getElementById('submitBtn');
-        if (submitButton) {
-            submitButton.parentNode.insertBefore(errorDiv, submitButton);
-        }
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
-    }
+    // Remove inline function - use global system instead
+    // function showError(message) { ... } - REMOVED
     
     // Message display function for registration
     function showMessage(message, type) {

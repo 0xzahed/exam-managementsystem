@@ -108,6 +108,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
                     <input type="datetime-local" name="due_date" id="dueDate" required
+                        min="{{ now()->format('Y-m-d\TH:i') }}"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                         value="{{ \Carbon\Carbon::parse($assignment->due_date)->format('Y-m-d\TH:i') }}">
                 </div>

@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Points</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Marks</label>
                     <input type="number" name="questions[${counter}][points]" min="1" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
             </div>
@@ -234,34 +234,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Check if basic validation passes
-            const title = document.getElementById('title').value.trim();
+            const examTitle = document.getElementById('title').value.trim();
             const courseId = document.getElementById('course_id').value;
             const startTime = document.getElementById('start_time').value;
             const endTime = document.getElementById('end_time').value;
             const questions = questionsContainer.querySelectorAll('.question-item');
             
-            if (!title) {
-                e.preventDefault();
+            if (!examTitle.trim()) {
                 showError('Please enter an exam title.');
-                return;
+                return false;
             }
             
             if (!courseId) {
-                e.preventDefault();
                 showError('Please select a course.');
-                return;
+                return false;
             }
             
             if (!startTime || !endTime) {
-                e.preventDefault();
                 showError('Please set start and end times.');
-                return;
+                return false;
             }
             
             if (questions.length === 0) {
-                e.preventDefault();
                 showError('Please add at least one question.');
-                return;
+                return false;
             }
             
             // Validate each question based on its type
@@ -277,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 if (!questionPoints || questionPoints < 1) {
-                    validationError = `Question ${index + 1}: Please enter valid points (minimum 1).`;
+                    validationError = `Question ${index + 1}: Please enter valid marks (minimum 1).`;
                     return;
                 }
                 
@@ -398,9 +394,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const startTimeInput = document.getElementById('start_time');
     const endTimeInput = document.getElementById('end_time');
     const durationInput = document.getElementById('duration_minutes');
+    const countdownElement = document.getElementById('examCountdown');
+    const timerElement = document.getElementById('countdownTimer');
+    let countdownInterval = null;
 
     if (startTimeInput && endTimeInput && durationInput) {
-        startTimeInput.addEventListener('change', updateEndTime);
+        startTimeInput.addEventListener('change', function() {
+            updateEndTime();
+            startCountdown();
+        });
         durationInput.addEventListener('change', updateEndTime);
     }
 
@@ -413,6 +415,77 @@ document.addEventListener('DOMContentLoaded', function() {
             endTimeInput.value = endTime.toISOString().slice(0, 16);
         }
     }
+
+    function startCountdown() {
+        // Clear existing interval
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+
+        if (!startTimeInput.value) {
+            countdownElement.classList.add('hidden');
+            return;
+        }
+
+        const examStartTime = new Date(startTimeInput.value);
+        const now = new Date();
+
+        // Only show countdown if exam is in the future
+        if (examStartTime <= now) {
+            countdownElement.classList.add('hidden');
+            return;
+        }
+
+        // Show countdown
+        countdownElement.classList.remove('hidden');
+
+        // Update countdown every second
+        countdownInterval = setInterval(() => {
+            const now = new Date();
+            const timeDiff = examStartTime - now;
+
+            if (timeDiff <= 0) {
+                // Exam time has passed
+                timerElement.textContent = 'Exam time has started!';
+                timerElement.classList.remove('text-blue-600');
+                timerElement.classList.add('text-green-600');
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            // Calculate time components
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            // Format display
+            let timeString = '';
+            if (days > 0) {
+                timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            } else {
+                timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            timerElement.textContent = timeString;
+
+            // Color coding based on time remaining
+            if (timeDiff <= 5 * 60 * 1000) { // 5 minutes
+                timerElement.className = 'font-medium text-red-600';
+            } else if (timeDiff <= 30 * 60 * 1000) { // 30 minutes
+                timerElement.className = 'font-medium text-yellow-600';
+            } else {
+                timerElement.className = 'font-medium text-blue-600';
+            }
+        }, 1000);
+    }
+
+    // Clean up interval when page unloads
+    window.addEventListener('beforeunload', () => {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+    });
 
     // Don't auto-initialize, let user add questions manually
     console.log('Exam creation form JavaScript loaded');

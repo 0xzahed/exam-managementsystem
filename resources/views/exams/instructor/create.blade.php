@@ -119,13 +119,22 @@
                         </div>
                         <div>
                             <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-                            <input type="datetime-local" id="start_time" name="start_time" value="{{ old('start_time') }}" 
+                            <input type="datetime-local" id="start_time" name="start_time" 
+                                   value="{{ old('start_time', now()->addHour()->format('Y-m-d\TH:i')) }}" 
+                                   min="{{ now()->format('Y-m-d\TH:i') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    required>
+                            <div id="examCountdown" class="mt-2 text-sm text-gray-600 hidden">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>Time until exam starts: </span>
+                                <span id="countdownTimer" class="font-medium text-blue-600">--:--:--</span>
+                            </div>
                         </div>
                         <div>
                             <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
-                            <input type="datetime-local" id="end_time" name="end_time" value="{{ old('end_time') }}" 
+                            <input type="datetime-local" id="end_time" name="end_time" 
+                                   value="{{ old('end_time', now()->addHours(2)->format('Y-m-d\TH:i')) }}" 
+                                   min="{{ now()->format('Y-m-d\TH:i') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    required>
                         </div>
@@ -268,11 +277,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                        <input type="datetime-local" name="cohorts[${index}][start_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                        <input type="datetime-local" name="cohorts[${index}][start_time]" 
+                               min="{{ now()->format('Y-m-d\TH:i') }}"
+                               class="w-full mt-1 px-3 py-2 border rounded-lg" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">End Time</label>
-                        <input type="datetime-local" name="cohorts[${index}][end_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                        <input type="datetime-local" name="cohorts[${index}][end_time]" 
+                               min="{{ now()->format('Y-m-d\TH:i') }}"
+                               class="w-full mt-1 px-3 py-2 border rounded-lg" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Students</label>

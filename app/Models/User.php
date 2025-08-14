@@ -31,11 +31,29 @@ class User extends Authenticatable
         'employee_student_id',
         'google_id',
         'avatar',
+        'profile_photo',
         'verification_token',
         'verification_expires_at',
         'verification_code',
         'verification_code_expires_at',
         'is_verified',
+        // Profile fields
+        'phone',
+        'department',
+        'bio',
+        'date_of_birth',
+        'gender',
+        'year_of_study',
+        'email_notifications',
+        'assignment_reminders',
+        'title',
+        'specialization',
+        'office_location',
+        'office_hours',
+        'website',
+        'linkedin',
+        'education',
+        'research_interests',
     ];
 
     /**
@@ -62,6 +80,10 @@ class User extends Authenticatable
             'verification_code_expires_at' => 'datetime',
             'is_verified' => 'boolean',
             'last_login_at' => 'datetime',
+            // Profile field casts
+            'date_of_birth' => 'date',
+            'email_notifications' => 'boolean',
+            'assignment_reminders' => 'boolean',
         ];
     }
     
@@ -100,14 +122,71 @@ class User extends Authenticatable
      */
     public function announcements()
     {
-        return $this->hasMany(Announcement::class, 'instructor_id');
+        return $this->hasMany(\App\Models\Announcement::class, 'instructor_id');
     }
+    
     /**
-     * Get full URL for profile photo or placeholder
+     * Get the profile photo display URL
      */
     public function getProfilePhotoDisplayUrlAttribute()
     {
-        return $this->avatar
-            ?: asset('storage/default-avatar.png');
+        // Check for uploaded profile photo first
+        if ($this->profile_photo) {
+            // If it's a local file path (starts with profile_photos/)
+            if (strpos($this->profile_photo, 'profile_photos/') === 0) {
+                return asset('storage/' . $this->profile_photo);
+            }
+            
+            // If it's a Google Drive URL (legacy), convert to direct image URL
+            if (strpos($this->profile_photo, 'drive.google.com') !== false) {
+                return $this->convertGoogleDriveUrl($this->profile_photo);
+            }
+            
+            // If it's a full URL (other services), return as is
+            if (filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
+                return $this->profile_photo;
+            }
+            
+            // If it's any other local file path
+            return asset('storage/' . $this->profile_photo);
+        }
+        
+        // Fallback to Google avatar
+        if ($this->avatar) {
+            // Also check if avatar is Google Drive URL
+            if (strpos($this->avatar, 'drive.google.com') !== false) {
+                return $this->convertGoogleDriveUrl($this->avatar);
+            }
+            return $this->avatar;
+        }
+        
+        // Return default avatar or null
+        return null;
+    }
+    
+    /**
+     * Convert Google Drive share URL to direct image URL
+     */
+    private function convertGoogleDriveUrl($url)
+    {
+        // Extract file ID from Google Drive URL
+        preg_match('/\/file\/d\/([a-zA-Z0-9-_]+)/', $url, $matches);
+        
+        if (isset($matches[1])) {
+            $fileId = $matches[1];
+            // Return direct image URL
+            return "https://drive.google.com/uc?export=view&id={$fileId}";
+        }
+        
+        // If we can't extract ID, return original URL
+        return $url;
+    }
+    
+    /**
+     * Get the user's full name
+     */
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 }

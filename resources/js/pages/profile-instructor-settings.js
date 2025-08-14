@@ -1,9 +1,12 @@
-// Profile Student Settings JavaScript
+/**
+ * Instructor Profile Settings Page JavaScript
+ * Handles profile updates, password changes, and form validations
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Profile student settings page loaded');
     
     // Profile form handling
-    const profileForm = document.getElementById('student-profile-form');
+    const profileForm = document.getElementById('profileForm');
     if (profileForm) {
         profileForm.addEventListener('submit', function(e) {
             const firstName = document.getElementById('first_name').value.trim();
@@ -32,12 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Password form handling
-    const passwordForm = document.querySelector('form[action*="password"]');
+    const passwordForm = document.getElementById('passwordForm');
     if (passwordForm) {
         passwordForm.addEventListener('submit', function(e) {
             const currentPassword = document.getElementById('current_password').value;
-            const newPassword = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('password_confirmation').value;
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('new_password_confirmation').value;
             
             if (!currentPassword || !newPassword || !confirmPassword) {
                 e.preventDefault();
@@ -66,31 +69,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Real-time password confirmation validation
-        const newPasswordField = document.getElementById('password');
-        const confirmPasswordField = document.getElementById('password_confirmation');
+        const newPasswordField = document.getElementById('new_password');
+        const confirmPasswordField = document.getElementById('new_password_confirmation');
         
         if (newPasswordField && confirmPasswordField) {
             confirmPasswordField.addEventListener('input', function() {
                 const newPassword = newPasswordField.value;
                 const confirmPassword = this.value;
                 
-                if (confirmPassword && newPassword !== confirmPassword) {
-                    this.classList.add('border-red-500');
-                    this.classList.remove('border-gray-300');
-                } else if (confirmPassword && newPassword === confirmPassword) {
-                    this.classList.remove('border-red-500');
-                    this.classList.add('border-green-500');
-                } else {
-                    this.classList.remove('border-red-500', 'border-green-500');
-                    this.classList.add('border-gray-300');
+                const messageElement = document.getElementById('password-match-message');
+                if (messageElement) {
+                    if (confirmPassword && newPassword !== confirmPassword) {
+                        messageElement.textContent = 'Passwords do not match';
+                        messageElement.className = 'text-sm text-red-600 mt-1';
+                    } else if (confirmPassword && newPassword === confirmPassword) {
+                        messageElement.textContent = 'Passwords match';
+                        messageElement.className = 'text-sm text-green-600 mt-1';
+                    } else {
+                        messageElement.textContent = '';
+                    }
                 }
             });
         }
     }
     
     // Profile picture upload handling
-    const profilePictureInput = document.getElementById('profile-photo-input');
-    if (profilePictureInput) {
+    const profilePictureInput = document.getElementById('profile_picture');
+    const profilePreview = document.getElementById('profile-preview');
+    
+    if (profilePictureInput && profilePreview) {
         profilePictureInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -110,24 +117,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Preview the image
-                const profilePreview = document.querySelector('.profile-photo-preview');
-                if (profilePreview) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        if (profilePreview.tagName === 'IMG') {
-                            profilePreview.src = e.target.result;
-                        } else {
-                            // Replace div with img
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.className = profilePreview.className;
-                            img.alt = 'Profile';
-                            profilePreview.parentNode.replaceChild(img, profilePreview);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             }
+        });
+    }
+    
+    // Auto-save draft functionality for bio
+    const bioTextarea = document.getElementById('bio');
+    if (bioTextarea) {
+        let bioTimeout;
+        bioTextarea.addEventListener('input', function() {
+            clearTimeout(bioTimeout);
+            bioTimeout = setTimeout(() => {
+                // Save bio draft to localStorage
+                localStorage.setItem('instructor_bio_draft', this.value);
+            }, 1000);
+        });
+        
+        // Load bio draft on page load
+        const savedBio = localStorage.getItem('instructor_bio_draft');
+        if (savedBio && !bioTextarea.value) {
+            bioTextarea.value = savedBio;
+        }
+        
+        // Clear draft when form is submitted
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function() {
+                localStorage.removeItem('instructor_bio_draft');
+            });
         });
     }
     
@@ -146,6 +168,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             this.value = value;
+        });
+    }
+    
+    // Department selection handling
+    const departmentSelect = document.getElementById('department');
+    if (departmentSelect) {
+        departmentSelect.addEventListener('change', function() {
+            const selectedDept = this.value;
+            console.log('Department changed to:', selectedDept);
+            
+            // You can add department-specific logic here
+            // For example, loading related courses or specializations
         });
     }
     
@@ -179,4 +213,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        isValidEmail,
+        showError,
+        showSuccess
+    };
 }

@@ -251,7 +251,7 @@
                             <div class="bg-gray-50 rounded-lg p-3">
                                 <div class="flex items-center gap-2 mb-1">
                                     <i class="fas fa-star text-yellow-500"></i>
-                                    <span class="font-medium text-gray-700">Points</span>
+                                    <span class="font-medium text-gray-700">Marks</span>
                                 </div>
                                 <p class="text-gray-900 font-semibold">{{ $exam->total_points ?? 100 }}</p>
                             </div>
@@ -273,7 +273,7 @@
                             </div>
                             <p class="text-green-700">
                                 <span class="text-2xl font-bold">{{ $attempt->score ?? 0 }}%</span>
-                                <span class="text-sm ml-2">({{ $attempt->marks_obtained ?? 0 }}/{{ $exam->total_points ?? 100 }} points)</span>
+                                <span class="text-sm ml-2">({{ $attempt->marks_obtained ?? 0 }}/{{ $exam->total_points ?? 100 }} marks)</span>
                             </p>
                             @if($attempt->completed_at)
                             <p class="text-green-600 text-sm mt-1">

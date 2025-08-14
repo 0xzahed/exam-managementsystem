@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!isValid) {
             e.preventDefault();
-            showAlert('Please fill in all required fields correctly.', 'error');
+            showError('Please fill in all required fields correctly.');
         }
     });
 
@@ -72,20 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         return isValid;
-    }
-
-    function showAlert(message, type = 'info') {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-            type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-        }`;
-        alertDiv.textContent = message;
-        
-        document.body.appendChild(alertDiv);
-        
-        setTimeout(() => {
-            alertDiv.remove();
-        }, 3000);
     }
 });
 

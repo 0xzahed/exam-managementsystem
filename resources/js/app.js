@@ -6,55 +6,18 @@ import './pages/welcome.js';
 import './pages/auth.js';
 
 // Global notification utility
-window.showNotification = function(message, type = 'info') {
-    const colors = {
-        success: 'bg-green-500 text-white border-green-600',
-        error: 'bg-red-500 text-white border-red-600',
-        warning: 'bg-yellow-500 text-white border-yellow-600',
-        info: 'bg-blue-500 text-white border-blue-600'
-    };
+import './bootstrap';
+import './utils/NotificationManager';
 
-    const icons = {
-        success: 'fas fa-check-circle',
-        error: 'fas fa-times-circle',
-        warning: 'fas fa-exclamation-triangle',
-        info: 'fas fa-info-circle'
-    };
-
-    // Create toast container if it doesn't exist
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'fixed top-4 right-4 z-50 space-y-2';
-        document.body.appendChild(container);
+// Legacy notification function for backwards compatibility
+// This is now handled by NotificationManager but kept for existing code
+window.showNotification = function(message, type = 'success') {
+    if (window.notificationManager) {
+        window.notificationManager.show(message, type);
+    } else {
+        // Fallback for early calls before NotificationManager is ready
+        console.log(`[${type}] ${message}`);
     }
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `${colors[type]} px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
-    toast.innerHTML = `
-        <div class="flex items-center">
-            <i class="${icons[type]} mr-3"></i>
-            <span class="flex-1">${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-
-    container.appendChild(toast);
-
-    // Animate in
-    setTimeout(() => {
-        toast.classList.remove('translate-x-full', 'opacity-0');
-    }, 100);
-
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        toast.classList.add('translate-x-full', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
 };
 
 // Global success notification shortcut

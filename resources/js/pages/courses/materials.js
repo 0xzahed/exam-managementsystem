@@ -137,7 +137,7 @@ window.editMaterial = function(materialId) {
         .then(data => {
             if (data.material) {
                 populateEditForm(data.material);
-                showSuccess('Material data loaded successfully');
+                // Material data loaded - no need for success message for loading data
             } else {
                 showError('Material data not found');
             }
@@ -397,7 +397,7 @@ function showSelectedFile(file) {
         console.log('Applied green visual feedback');
     }
     
-    showSuccess(`File "${file.name}" selected successfully!`);
+    // File selected - visual feedback is enough, no need for success notification
     console.log('File selection display completed!');
 }
 

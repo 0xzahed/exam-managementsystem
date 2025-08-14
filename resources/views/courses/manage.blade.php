@@ -9,23 +9,7 @@
 @section('content')
 <div id="coursesManageRoot" data-open-edit-modal="{{ session('openEditModal') ?? '' }}" data-open-create="{{ request()->query('create') ? '1' : '' }}">
     <div class="px-2 py-4 sm:px-0">
-        <!-- Success/Error Messages -->
-        @if(session('success'))
-        <div class="px-4 py-3 mb-6 text-green-700 border border-green-200 rounded-lg bg-green-50">
-            <i class="mr-2 fas fa-check-circle"></i>{{ session('success') }}
-        </div>
-        @endif
-
-        @if($errors->any())
-        <div class="px-4 py-3 mb-6 text-red-700 border border-red-200 rounded-lg bg-red-50">
-            <i class="mr-2 fas fa-exclamation-circle"></i>
-            <ul class="list-disc list-inside">
-                @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
+        <!-- Flash messages are now handled by the central notification system -->
 
         <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">

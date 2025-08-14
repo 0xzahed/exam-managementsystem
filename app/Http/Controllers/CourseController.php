@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\User;
+use App\Traits\FlashMessageTrait;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class CourseController extends Controller
 {
+    use FlashMessageTrait;
     public function create()
     {
         return view('courses.create');
@@ -56,8 +58,7 @@ class CourseController extends Controller
                 'is_active' => true,
             ]);
 
-            return redirect()->route('courses.manage')
-                ->with('success', 'Course created successfully!');
+            return $this->flashSuccess('Course created successfully!', 'courses.manage');
         } catch (\Exception $e) {
             return back()
                 ->withErrors(['error' => 'Failed to create course. Please try again.'])
@@ -127,8 +128,7 @@ class CourseController extends Controller
                 'password' => $request->password,
             ]);
 
-            return redirect()->route('courses.manage')
-                ->with('success', 'Course updated successfully!');
+            return $this->flashSuccess('Course updated successfully!', 'courses.manage');
         } catch (\Exception $e) {
             return back()
                 ->withErrors(['error' => 'Failed to update course. Please try again.'])
@@ -146,8 +146,7 @@ class CourseController extends Controller
             $course->students()->detach();
             $course->delete();
 
-            return redirect()->route('courses.manage')
-                ->with('success', 'Course deleted successfully!');
+            return $this->flashSuccess('Course deleted successfully!', 'courses.manage');
         } catch (\Exception $e) {
             return back()
                 ->withErrors(['error' => 'Failed to delete course. Please try again.']);

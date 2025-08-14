@@ -13,23 +13,7 @@
         .form-input:disabled { background:#f3f4f6; color:#6b7280; cursor:not-allowed; }
     </style>
 
-    @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2 rounded flex items-center gap-2" role="alert">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded flex items-center gap-2" role="alert">
-            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-        </div>
-    @endif
-    @if($errors->any())
-        <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded space-y-1">
-            @foreach($errors->all() as $err)
-                <div class="flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i><span>{{ $err }}</span></div>
-            @endforeach
-        </div>
-    @endif
+    <!-- Flash messages are now handled by the central notification system -->
 
     <!-- Header Card -->
     <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow">
@@ -70,6 +54,18 @@
             </div>
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
+                    <label class="form-label" for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $user->first_name) }}" class="form-input" required/>
+                </div>
+                <div>
+                    <label class="form-label" for="last_name">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $user->last_name) }}" class="form-input" required/>
+                </div>
+                <div>
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-input" required/>
+                </div>
+                <div>
                     <label class="form-label" for="phone">Phone</label>
                     <input type="text" name="phone" id="phone" value="{{ old('phone',$user->phone) }}" class="form-input"/>
                 </div>
@@ -81,7 +77,7 @@
                     <label class="form-label" for="year_of_study">Year of Study</label>
                     <select name="year_of_study" id="year_of_study" class="form-input">
                         <option value="">--</option>
-                        @for($i=1;$i<=8;$i++)
+                        @for($i=1;$i<=4;$i++)
                             <option value="{{ $i }}" @selected(old('year_of_study',$user->year_of_study)==$i)>{{ $i }}</option>
                         @endfor
                     </select>

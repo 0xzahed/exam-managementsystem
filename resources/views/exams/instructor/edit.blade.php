@@ -273,11 +273,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                            <input type="datetime-local" name="cohorts[${index}][start_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                            <input type="datetime-local" name="cohorts[${index}][start_time]" 
+                                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   class="w-full mt-1 px-3 py-2 border rounded-lg" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">End Time</label>
-                            <input type="datetime-local" name="cohorts[${index}][end_time]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
+                            <input type="datetime-local" name="cohorts[${index}][end_time]" 
+                                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                                   class="w-full mt-1 px-3 py-2 border rounded-lg" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Students</label>

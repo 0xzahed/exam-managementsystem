@@ -8,6 +8,8 @@ use App\Models\ExamAttempt;
 use App\Models\ExamAnswer;
 use App\Models\ExamQuestion;
 use App\Models\Course;
+use App\Models\User;
+use App\Traits\FlashMessageTrait;
 use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,8 @@ use Carbon\Carbon;
 
 class StudentExamController extends Controller
 {
+    use FlashMessageTrait;
+    
     protected $googleDriveService;
 
     public function __construct(GoogleDriveService $googleDriveService)

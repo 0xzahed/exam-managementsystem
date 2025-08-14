@@ -42,9 +42,6 @@
                                     Due Date
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Points
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Grade
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -72,17 +69,13 @@
                                     {{ $assignment->due_date ? $assignment->due_date->format('M j, Y') : 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                                    {{ $grade ? $grade->points_earned . '/' . $grade->total_points : '-' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($grade)
-                                        <span class="px-3 py-1 text-sm font-medium rounded-full 
-                                            {{ $grade->score >= 90 ? 'bg-green-100 text-green-800' : 
-                                               ($grade->score >= 80 ? 'bg-blue-100 text-blue-800' : 
-                                               ($grade->score >= 70 ? 'bg-yellow-100 text-yellow-800' : 
-                                               ($grade->score >= 60 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'))) }}">
+                                        <div class="font-semibold text-lg">
+                                            {{ $grade->points_earned }}/{{ $grade->total_points }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
                                             {{ $grade->letter_grade ?? 'N/A' }}
-                                        </span>
+                                        </div>
                                     @else
                                         <span class="text-gray-400 text-sm">Not Graded</span>
                                     @endif
@@ -129,9 +122,6 @@
                                     Date
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Points
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Grade
                                 </th>
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -145,7 +135,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($exams as $exam)
                             @php
-                                $gradeKey = 'App\Models\ExamAttempt_' . $exam->id;
+                                $gradeKey = 'App\Models\Exam_' . $exam->id;
                                 $grade = $grades->get($gradeKey);
                             @endphp
                             <tr class="hover:bg-gray-50">
@@ -159,23 +149,19 @@
                                     {{ $exam->start_time ? $exam->start_time->format('M j, Y') : 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                                    {{ $grade ? $grade->points_earned . '/' . $grade->total_points : '-' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($grade)
-                                        <span class="px-3 py-1 text-sm font-medium rounded-full 
-                                            {{ $grade->score >= 90 ? 'bg-green-100 text-green-800' : 
-                                               ($grade->score >= 80 ? 'bg-blue-100 text-blue-800' : 
-                                               ($grade->score >= 70 ? 'bg-yellow-100 text-yellow-800' : 
-                                               ($grade->score >= 60 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'))) }}">
+                                        <div class="font-semibold text-lg">
+                                            {{ $grade->points_earned }}/{{ $grade->points_possible ?? $grade->total_points }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
                                             {{ $grade->letter_grade ?? 'N/A' }}
-                                        </span>
+                                        </div>
                                     @else
                                         <span class="text-gray-400 text-sm">Not Taken</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                                    {{ $grade ? $grade->score . '%' : '-' }}
+                                    {{ $grade ? ($grade->percentage ?? $grade->score) . '%' : '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($grade && $grade->feedback)

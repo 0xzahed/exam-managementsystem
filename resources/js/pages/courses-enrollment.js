@@ -128,7 +128,7 @@ function submitEnrollment(password) {
         
         if (data.success) {
             closeEnrollModal();
-            showSuccessModal(data.message);
+            showSuccess(data.message);
             } else {
                 if (data.message && data.message.toLowerCase().includes('password')) {
                     showPasswordError(data.message);
@@ -207,20 +207,6 @@ function setLoadingState(loading) {
         if (passwordInput) {
             passwordInput.disabled = false;
         }
-    }
-}
-
-/**
- * Show success modal
- */
-function showSuccessModal(message) {
-    const modal = document.getElementById('successModal');
-    const successMessage = document.getElementById('successMessage');
-    
-    if (modal && successMessage) {
-        successMessage.textContent = message || `Successfully enrolled in ${currentCourseName}!`;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
     }
 }
 

@@ -3,7 +3,7 @@
 @section('title', $course->title . ' - Gradebook')
 
 @section('content')
-<div class="px-0 pt-2 md:pt-0">
+<div class="px-0 pt                                        <div class="text-xs text-gray-400">({{ $exam->total_points ?? 100 }} marks)</div>2 md:pt-0">
     <div class="py-2 md:py-4">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Page Header -->
@@ -97,7 +97,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900">Gradebook</h2>
-                            <p class="text-sm text-gray-600 mt-1">Click on any grade to edit it</p>
+                            <p class="text-sm text-gray-600 mt-1">Student grade overview</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-500">Auto-sync enabled</span>
@@ -117,7 +117,7 @@
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
                                     <div class="text-center">
                                         <div class="font-medium">{{ Str::limit($assignment->title, 15) }}</div>
-                                        <div class="text-xs text-gray-400">({{ $assignment->marks ?? 100 }} pts)</div>
+                                        <div class="text-xs text-gray-400">({{ $assignment->marks ?? 100 }} marks)</div>
                                     </div>
                                 </th>
                                 @endforeach
@@ -163,11 +163,10 @@
                                 @endphp
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($grade)
-                                        <button onclick="editGrade({{ $grade->id }}, '{{ $grade->points_earned }}', '{{ $grade->feedback ?? '' }}', {{ $grade->total_points }})"
-                                                class="grade-cell bg-green-100 text-green-800 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors cursor-pointer">
+                                        <div class="bg-green-100 text-green-800 px-3 py-1 rounded-lg text-sm font-medium">
                                             {{ $grade->points_earned }}/{{ $grade->total_points }}
                                             <div class="text-xs text-green-600">{{ $grade->score }}%</div>
-                                        </button>
+                                        </div>
                                     @else
                                         <span class="text-gray-400 text-sm">-</span>
                                     @endif
@@ -177,16 +176,19 @@
                                 <!-- Exam Grades -->
                                 @foreach($exams as $exam)
                                 @php
-                                    $gradeKey = $student->id . '_App\Models\ExamAttempt_' . $exam->id;
+                                    $gradeKey = $student->id . '_App\Models\Exam_' . $exam->id;
                                     $grade = $grades->get($gradeKey);
                                 @endphp
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($grade)
-                                        <button onclick="editGrade({{ $grade->id }}, '{{ $grade->points_earned }}', '{{ $grade->feedback ?? '' }}', {{ $grade->total_points }})"
-                                                class="grade-cell bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors cursor-pointer">
-                                            {{ $grade->points_earned }}/{{ $grade->total_points }}
-                                            <div class="text-xs text-blue-600">{{ $grade->score }}%</div>
-                                        </button>
+                                        @php
+                                            $maxPoints = $grade->points_possible ?? $grade->total_points;
+                                            $percentage = $grade->percentage ?? $grade->score;
+                                        @endphp
+                                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-sm font-medium">
+                                            {{ $grade->points_earned }}/{{ $maxPoints }}
+                                            <div class="text-xs text-blue-600">{{ $percentage }}%</div>
+                                        </div>
                                     @else
                                         <span class="text-gray-400 text-sm">-</span>
                                     @endif
@@ -217,114 +219,14 @@
     </div>
 </div>
 
-<!-- Grade Edit Modal -->
-<div id="gradeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Edit Grade</h3>
-            <form id="gradeForm">
-                @csrf
-                <input type="hidden" id="gradeId" name="grade_id">
-                
-                <div class="mb-4">
-                    <label for="pointsEarned" class="block text-sm font-medium text-gray-700 mb-2">
-                        Points Earned
-                    </label>
-                    <input type="number" id="pointsEarned" name="points_earned" min="0" step="0.01" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Total points: <span id="totalPoints">0</span></p>
-                </div>
-
-                <div class="mb-4">
-                    <label for="feedback" class="block text-sm font-medium text-gray-700 mb-2">
-                        Feedback (Optional)
-                    </label>
-                    <textarea id="feedback" name="feedback" rows="3"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                              placeholder="Add feedback for the student..."></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                    <button type="button" onclick="closeGradeModal()"
-                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Update Grade
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('scripts')
 <script>
-function editGrade(gradeId, pointsEarned, feedback, totalPoints) {
-    document.getElementById('gradeId').value = gradeId;
-    document.getElementById('pointsEarned').value = pointsEarned;
-    document.getElementById('feedback').value = feedback;
-    document.getElementById('totalPoints').textContent = totalPoints;
-    document.getElementById('gradeModal').classList.remove('hidden');
-}
-
-function closeGradeModal() {
-    document.getElementById('gradeModal').classList.add('hidden');
-}
-
-document.getElementById('gradeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch('{{ route("instructor.gradebook.update-grade") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success message
-            showNotification('Grade updated successfully!', 'success');
-            
-            // Reload page to show updated grades
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else {
-            showError('Error updating grade: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showError('Error updating grade. Please try again.');
-    });
-});
-
-// Close modal when clicking outside
-document.getElementById('gradeModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeGradeModal();
-    }
-});
-
-// Deprecated inline notification removed
+// No grade editing functionality - read-only gradebook
 </script>
 
 <style>
-.grade-cell {
-    transition: all 0.2s ease;
-}
-
-.grade-cell:hover {
-    transform: scale(1.05);
-}
-
 /* Sticky table styles */
 .sticky {
     position: sticky;
