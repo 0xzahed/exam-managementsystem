@@ -1,0 +1,122 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-DIrXrfo2.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-Cf1QJdxR.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/pages/auth.js",
+      "resources/js/pages/welcome.js"
+    ]
+  },
+  "resources/js/pages/announcements-index.js": {
+    "file": "assets/announcements-index-BYMFgJkN.js",
+    "name": "announcements-index",
+    "src": "resources/js/pages/announcements-index.js",
+    "isEntry": true
+  },
+  "resources/js/pages/assignment-show.js": {
+    "file": "assets/assignment-show-3l8eNpki.js",
+    "name": "assignment-show",
+    "src": "resources/js/pages/assignment-show.js",
+    "isEntry": true
+  },
+  "resources/js/pages/assignments-submissions.js": {
+    "file": "assets/assignments-submissions-DvNX4778.js",
+    "name": "assignments-submissions",
+    "src": "resources/js/pages/assignments-submissions.js",
+    "isEntry": true
+  },
+  "resources/js/pages/assignments/create.js": {
+    "file": "assets/create-BDUkUk3K.js",
+    "name": "create",
+    "src": "resources/js/pages/assignments/create.js",
+    "isEntry": true
+  },
+  "resources/js/pages/auth.js": {
+    "file": "assets/auth-DB6jHd10.js",
+    "name": "auth",
+    "src": "resources/js/pages/auth.js",
+    "isEntry": true
+  },
+  "resources/js/pages/courses-enrollment.js": {
+    "file": "assets/courses-enrollment-DKWWVCM9.js",
+    "name": "courses-enrollment",
+    "src": "resources/js/pages/courses-enrollment.js",
+    "isEntry": true
+  },
+  "resources/js/pages/courses/course-create.js": {
+    "file": "assets/course-create-CxR7eUlX.js",
+    "name": "course-create",
+    "src": "resources/js/pages/courses/course-create.js",
+    "isEntry": true
+  },
+  "resources/js/pages/courses/manage.js": {
+    "file": "assets/manage-Dz_QfsrC.js",
+    "name": "manage",
+    "src": "resources/js/pages/courses/manage.js",
+    "isEntry": true
+  },
+  "resources/js/pages/courses/materials.js": {
+    "file": "assets/materials-nY8EMJh-.js",
+    "name": "materials",
+    "src": "resources/js/pages/courses/materials.js",
+    "isEntry": true
+  },
+  "resources/js/pages/exams-index.js": {
+    "file": "assets/exams-index-BwEfdkiI.js",
+    "name": "exams-index",
+    "src": "resources/js/pages/exams-index.js",
+    "isEntry": true
+  },
+  "resources/js/pages/exams/create.js": {
+    "file": "assets/create-DZp0UzsH.js",
+    "name": "create",
+    "src": "resources/js/pages/exams/create.js",
+    "isEntry": true
+  },
+  "resources/js/pages/exams/take.js": {
+    "file": "assets/take-CIT2h4NU.js",
+    "name": "take",
+    "src": "resources/js/pages/exams/take.js",
+    "isEntry": true
+  },
+  "resources/js/pages/profile-instructor-settings.js": {
+    "file": "assets/profile-instructor-settings-BCE1jzgr.js",
+    "name": "profile-instructor-settings",
+    "src": "resources/js/pages/profile-instructor-settings.js",
+    "isEntry": true
+  },
+  "resources/js/pages/profile-student-settings.js": {
+    "file": "assets/profile-student-settings-DMV0f-BZ.js",
+    "name": "profile-student-settings",
+    "src": "resources/js/pages/profile-student-settings.js",
+    "isEntry": true
+  },
+  "resources/js/pages/registration.js": {
+    "file": "assets/registration-wvbKQq2y.js",
+    "name": "registration",
+    "src": "resources/js/pages/registration.js",
+    "isEntry": true
+  },
+  "resources/js/pages/students/index.js": {
+    "file": "assets/index-CiQuhWQK.js",
+    "name": "index",
+    "src": "resources/js/pages/students/index.js",
+    "isEntry": true
+  },
+  "resources/js/pages/welcome.js": {
+    "file": "assets/welcome-B7sdSx3A.js",
+    "name": "welcome",
+    "src": "resources/js/pages/welcome.js",
+    "isEntry": true
+  }
+}
