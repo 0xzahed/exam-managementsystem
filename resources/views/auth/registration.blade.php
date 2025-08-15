@@ -212,8 +212,12 @@
                 <!-- Confirm Password -->
                 <div>
                     <label class="block text-sm font-medium text-white mb-2">Confirm Password</label>
-                    <!-- ID aligned with auth.js expectation (password_confirmation) -->
-                    <input type="password" id="password_confirmation" name="password_confirmation" required class="input-focus w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-300" placeholder="Confirm your password">
+                    <div class="relative">
+                        <input type="password" id="password_confirmation" name="password_confirmation" required class="input-focus w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all duration-300" placeholder="Confirm your password">
+                        <button type="button" id="togglePasswordConfirmation" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
                 </div>
                 <!-- Terms and Conditions -->
                 <div class="flex items-start space-x-3">

@@ -188,7 +188,7 @@
                         <input type="checkbox" id="rememberMe" name="remember" class="w-4 h-4 text-indigo-600 bg-white/10 border-white/20 rounded focus:ring-indigo-500">
                         <span class="ml-2 text-sm text-white/90">Remember me</span>
                     </label>
-                    <a href="#" id="forgotPasswordLink" class="text-sm text-indigo-200 hover:text-white underline">
+                    <a href="{{ route('password.request') }}" class="text-sm text-indigo-200 hover:text-white underline">
                         <i class="fas fa-lock mr-1"></i>Forgot password?
                     </a>
                 </div>
