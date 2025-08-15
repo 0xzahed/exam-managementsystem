@@ -88,6 +88,7 @@
             </div>
         </div>
 
+        
         <!-- Dates -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
