@@ -1,47 +1,25 @@
 // Exam Edit Form JavaScript - Fixed and Simplified
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== JAVASCRIPT LOADED ===');
     console.log('Exam form JavaScript loaded');
-    console.log('Window exam data exists:', !!window.examData);
     console.log('Window exam data:', window.examData);
     
     // Initialize question counter
     let questionCounter = 0;
-    let cohortCounter = 0;
     
     // Get DOM elements
     const questionsContainer = document.getElementById('questionsContainer');
     const noQuestions = document.getElementById('noQuestions');
     const addQuestionBtn = document.getElementById('addQuestionBtn');
-    const cohortsContainer = document.getElementById('cohortsContainer');
-    const addCohortBtn = document.getElementById('addCohortBtn');
     
-    console.log('=== DOM ELEMENTS CHECK ===');
     console.log('Questions container found:', !!questionsContainer);
     console.log('Add question button found:', !!addQuestionBtn);
     console.log('No questions element found:', !!noQuestions);
-    console.log('Cohorts container found:', !!cohortsContainer);
-    console.log('Add cohort button found:', !!addCohortBtn);
-    
-    if (!questionsContainer) {
-        console.error('CRITICAL: questionsContainer not found!');
-        return;
-    }
-    
-    if (!addQuestionBtn) {
-        console.error('CRITICAL: addQuestionBtn not found!');
-        return;
-    }
     
     // Load existing questions if in edit mode
-    console.log('=== CHECKING EDIT MODE DATA ===');
     if (window.examData && window.examData.isEditMode && window.examData.questions) {
-        console.log('Edit mode detected');
-        console.log('Questions array:', window.examData.questions);
-        console.log('Questions length:', window.examData.questions.length);
+        console.log('Loading existing questions:', window.examData.questions);
         
         if (window.examData.questions.length > 0) {
-            console.log('=== LOADING EXISTING QUESTIONS ===');
             // Hide no questions message
             if (noQuestions) {
                 noQuestions.style.display = 'none';
@@ -49,40 +27,24 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Load each question
             window.examData.questions.forEach((question, index) => {
-                console.log(`Loading question ${index + 1}:`, question);
+                console.log('Loading question:', index + 1, question);
                 addExistingQuestion(question, index);
                 questionCounter = index + 1;
             });
         } else {
-            console.log('No existing questions found, showing no questions message');
             // Show no questions message
             if (noQuestions) {
                 noQuestions.style.display = 'block';
             }
         }
-    } else {
-        console.log('Not in edit mode or no questions data');
-        console.log('window.examData exists:', !!window.examData);
-        console.log('isEditMode:', window.examData ? window.examData.isEditMode : 'N/A');
-        console.log('questions exists:', window.examData ? !!window.examData.questions : 'N/A');
     }
     
     // Add question button click handler
     if (addQuestionBtn) {
         addQuestionBtn.addEventListener('click', function() {
-            console.log('=== ADD QUESTION CLICKED ===');
+            console.log('Add question button clicked');
             addNewQuestion();
         });
-        console.log('Add question button event listener added');
-    }
-    
-    // Add cohort button click handler
-    if (addCohortBtn) {
-        addCohortBtn.addEventListener('click', function() {
-            console.log('=== ADD COHORT CLICKED ===');
-            addNewCohort();
-        });
-        console.log('Add cohort button event listener added');
     }
     
     // Function to add new empty question
@@ -319,126 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         questionCounter = questions.length;
-    }
-    
-    // ===== COHORT FUNCTIONS =====
-    
-    // Function to add new cohort
-    function addNewCohort() {
-        if (!cohortsContainer) {
-            console.error('Cohorts container not found!');
-            return;
-        }
-        
-        cohortCounter++;
-        console.log('Adding new cohort, counter:', cohortCounter);
-        
-        const cohortHtml = createCohortHTML(cohortCounter, {});
-        cohortsContainer.insertAdjacentHTML('beforeend', cohortHtml);
-        
-        // Add event listeners to the new cohort
-        setupCohortEventListeners(cohortsContainer.lastElementChild, cohortCounter);
-        
-        console.log('Cohort added successfully');
-    }
-    
-    // Function to create cohort HTML
-    function createCohortHTML(cohortNumber, cohortData) {
-        const cohortIndex = cohortNumber - 1;
-        
-        const studentsOptions = window.examData && window.examData.students 
-            ? window.examData.students.map(student => 
-                `<option value="${student.id}" ${cohortData.student_ids && cohortData.student_ids.includes(student.id) ? 'selected' : ''}>${student.name} (${student.email})</option>`
-            ).join('')
-            : '';
-        
-        return `
-            <div class="cohort-item bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-lg font-medium text-gray-900">Cohort ${cohortNumber}</h4>
-                    <button type="button" class="remove-cohort text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Cohort Name</label>
-                        <input type="text" name="cohorts[${cohortIndex}][name]" value="${cohortData.name || ''}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                               placeholder="Enter cohort name..." required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Attempts</label>
-                        <input type="number" name="cohorts[${cohortIndex}][max_attempts]" min="1" value="${cohortData.max_attempts || 1}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Time (Optional)</label>
-                        <input type="datetime-local" name="cohorts[${cohortIndex}][start_time]" 
-                               value="${cohortData.start_time || ''}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">End Time (Optional)</label>
-                        <input type="datetime-local" name="cohorts[${cohortIndex}][end_time]" 
-                               value="${cohortData.end_time || ''}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Students</label>
-                    <select name="cohorts[${cohortIndex}][student_ids][]" multiple 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                            style="height: 120px;">
-                        ${studentsOptions}
-                    </select>
-                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple students</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Function to setup event listeners for a cohort
-    function setupCohortEventListeners(cohortElement, cohortNumber) {
-        // Remove button handler
-        const removeBtn = cohortElement.querySelector('.remove-cohort');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to remove this cohort?')) {
-                    cohortElement.remove();
-                    updateCohortNumbers();
-                }
-            });
-        }
-    }
-    
-    // Function to update cohort numbers
-    function updateCohortNumbers() {
-        const cohorts = cohortsContainer.querySelectorAll('.cohort-item');
-        cohorts.forEach((cohort, index) => {
-            const title = cohort.querySelector('h4');
-            const cohortNumber = index + 1;
-            
-            if (title) {
-                title.textContent = `Cohort ${cohortNumber}`;
-            }
-            
-            // Update form field names
-            const inputs = cohort.querySelectorAll('input, select');
-            inputs.forEach(input => {
-                if (input.name && input.name.includes('cohorts[')) {
-                    const fieldName = input.name.replace(/cohorts\[\d+\]/, `cohorts[${index}]`);
-                    input.name = fieldName;
-                }
-            });
-        });
-        
-        cohortCounter = cohorts.length;
     }
     
     console.log('Exam edit form JavaScript initialized successfully');

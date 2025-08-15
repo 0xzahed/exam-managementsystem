@@ -120,19 +120,70 @@ class AssignmentController extends Controller
         DB::beginTransaction();
         
         try {
-            // Handle file uploads
+            // Handle file uploads to Google Drive
             $instructorFiles = [];
+            $googleDriveFolderId = '19E0Xyps8MjUF6c3efI5-XTUVU2LRO3WH'; // Your specified Google Drive folder
+            
             if ($request->hasFile('instructor_files')) {
                 foreach ($request->file('instructor_files') as $file) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('assignments/instructor_files', $filename, 'public');
-                    $instructorFiles[] = [
-                        'original_name' => $file->getClientOriginalName(),
-                        'stored_name' => $filename,
-                        'path' => $path,
-                        'size' => $file->getSize(),
-                        'mime_type' => $file->getMimeType()
-                    ];
+                    try {
+                        // Upload to Google Drive
+                        Log::info('Attempting Google Drive upload', [
+                            'assignment_title' => $validatedData['title'],
+                            'file_name' => $file->getClientOriginalName(),
+                            'target_folder_id' => $googleDriveFolderId
+                        ]);
+                        
+                        $uploadResult = $this->googleDriveService->uploadFile(
+                            $file,
+                            $validatedData['title'] . '_' . $file->getClientOriginalName(),
+                            $googleDriveFolderId
+                        );
+                        
+                        Log::info('Google Drive upload result', [
+                            'assignment_title' => $validatedData['title'],
+                            'upload_result' => $uploadResult
+                        ]);
+                        
+                        // Also store locally as backup
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $path = $file->storeAs('assignments/instructor_files', $filename, 'public');
+                        
+                        $instructorFiles[] = [
+                            'original_name' => $file->getClientOriginalName(),
+                            'stored_name' => $filename,
+                            'path' => $path,
+                            'size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType(),
+                            'google_drive_id' => $uploadResult['id'] ?? null,
+                            'google_drive_link' => $uploadResult['webViewLink'] ?? null
+                        ];
+                        
+                        Log::info('Assignment file uploaded to Google Drive', [
+                            'assignment_title' => $validatedData['title'],
+                            'file_name' => $file->getClientOriginalName(),
+                            'google_drive_id' => $uploadResult['id'] ?? null
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Failed to upload assignment file to Google Drive', [
+                            'assignment_title' => $validatedData['title'],
+                            'file_name' => $file->getClientOriginalName(),
+                            'error' => $e->getMessage()
+                        ]);
+                        
+                        // Fall back to local storage only
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $path = $file->storeAs('assignments/instructor_files', $filename, 'public');
+                        $instructorFiles[] = [
+                            'original_name' => $file->getClientOriginalName(),
+                            'stored_name' => $filename,
+                            'path' => $path,
+                            'size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType(),
+                            'google_drive_error' => $e->getMessage()
+                        ];
+                    }
                 }
             }
             
@@ -178,7 +229,7 @@ class AssignmentController extends Controller
                 ? 'Assignment published successfully!' 
                 : 'Assignment saved as draft successfully!';
                 
-            return redirect()->route('assignments.index')->with('success', $message);
+            return redirect()->route('instructor.assignments.index')->with('success', $message);
             
         } catch (\Exception $e) {
             DB::rollback();
@@ -207,7 +258,7 @@ class AssignmentController extends Controller
         // Check if user can view this assignment
         if ($user->role === 'instructor') {
             if ($assignment->instructor_id !== $user->id) {
-                return redirect()->route('assignments.index')->with('error', 'You are not authorized to view this assignment.');
+                return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to view this assignment.');
             }
         } else {
             // Check if student is enrolled in the course
@@ -217,7 +268,7 @@ class AssignmentController extends Controller
                 ->exists();
                 
             if (!$isEnrolled || $assignment->status !== 'published') {
-                return redirect()->route('assignments.index')->with('error', 'You are not authorized to view this assignment.');
+                return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to view this assignment.');
             }
         }
         
@@ -242,7 +293,7 @@ class AssignmentController extends Controller
         
         // Only the instructor who created the assignment can edit it
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return redirect()->route('assignments.index')->with('error', 'You are not authorized to edit this assignment.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to edit this assignment.');
         }
         
         // Get courses taught by this instructor
@@ -261,7 +312,7 @@ class AssignmentController extends Controller
         
         // Only the instructor who created the assignment can update it
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return redirect()->route('assignments.index')->with('error', 'You are not authorized to update this assignment.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to update this assignment.');
         }
         
         // Validate the request (same validation as store method)
@@ -362,7 +413,7 @@ class AssignmentController extends Controller
         
         // Only the instructor who created the assignment can delete it
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return redirect()->route('assignments.index')->with('error', 'You are not authorized to delete this assignment.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to delete this assignment.');
         }
         
         DB::beginTransaction();
@@ -381,12 +432,12 @@ class AssignmentController extends Controller
             
             DB::commit();
             
-            return redirect()->route('assignments.index')->with('success', 'Assignment deleted successfully!');
+            return redirect()->route('instructor.assignments.index')->with('success', 'Assignment deleted successfully!');
             
         } catch (\Exception $e) {
             DB::rollback();
             
-            return redirect()->route('assignments.index')->with('error', 'Failed to delete assignment. Please try again.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'Failed to delete assignment. Please try again.');
         }
     }
 
@@ -446,7 +497,7 @@ class AssignmentController extends Controller
         
         // Only the instructor who created the assignment can view submissions
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return redirect()->route('assignments.index')->with('error', 'You are not authorized to view submissions for this assignment.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'You are not authorized to view submissions for this assignment.');
         }
         
         return view('assignments.submissions', compact('assignment'));
@@ -462,7 +513,7 @@ class AssignmentController extends Controller
         
         // Only students can submit assignments
         if ($user->role !== 'student') {
-            return redirect()->route('assignments.index')->with('error', 'Only students can submit assignments.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'Only students can submit assignments.');
         }
         
         // Check if student is enrolled in the course
@@ -472,7 +523,7 @@ class AssignmentController extends Controller
             ->exists();
             
         if (!$isEnrolled) {
-            return redirect()->route('assignments.index')->with('error', 'You are not enrolled in this course.');
+            return redirect()->route('instructor.assignments.index')->with('error', 'You are not enrolled in this course.');
         }
         
         // Check if assignment is published
@@ -892,7 +943,7 @@ class AssignmentController extends Controller
         $user = Auth::user();
         
         if ($user->role !== 'instructor' || $assignment->instructor_id !== $user->id) {
-            return redirect()->route('assignments.index')->with('error', 'Unauthorized');
+            return redirect()->route('instructor.assignments.index')->with('error', 'Unauthorized');
         }
         
         $filename = 'submissions_' . $assignment->id . '_' . date('Y-m-d') . '.csv';

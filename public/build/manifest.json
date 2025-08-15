@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-DIrXrfo2.css",
+    "file": "assets/app-2YJnzClT.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "names": [
@@ -72,19 +72,19 @@
     "isEntry": true
   },
   "resources/js/pages/exams-index.js": {
-    "file": "assets/exams-index-BwEfdkiI.js",
+    "file": "assets/exams-index-CqeC5D3i.js",
     "name": "exams-index",
     "src": "resources/js/pages/exams-index.js",
     "isEntry": true
   },
   "resources/js/pages/exams/create.js": {
-    "file": "assets/create-DZp0UzsH.js",
+    "file": "assets/create-BLYR38OA.js",
     "name": "create",
     "src": "resources/js/pages/exams/create.js",
     "isEntry": true
   },
   "resources/js/pages/exams/take.js": {
-    "file": "assets/take-CIT2h4NU.js",
+    "file": "assets/take-Yk6GKanC.js",
     "name": "take",
     "src": "resources/js/pages/exams/take.js",
     "isEntry": true

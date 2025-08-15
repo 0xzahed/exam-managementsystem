@@ -1,4 +1,4 @@
-    <?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -415,6 +415,7 @@ Route::get('/debug-exams', function() {
 // Instructor Exam Routes
 Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'role:instructor'])->group(function () {
     Route::resource('exams', InstructorExamController::class);
+    Route::get('exams/{exam}/debug', [InstructorExamController::class, 'debugEdit'])->name('exams.debug');
     Route::get('exams/{exam}/results', [InstructorExamController::class, 'results'])->name('exams.results');
     Route::get('exams/{exam}/attempts', [InstructorExamController::class, 'attempts'])->name('exams.attempts');
     Route::get('exams/{exam}/attempts/{attempt}', [InstructorExamController::class, 'viewAttempt'])->name('exams.view-attempt');
@@ -444,6 +445,7 @@ Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'role:inst
 Route::prefix('student')->name('student.')->middleware(['auth', 'role:student'])->group(function () {
     Route::get('exams', [StudentExamController::class, 'index'])->name('exams.index');
     // Route::get('exams/{exam}', [StudentExamController::class, 'show'])->name('exams.show'); // Removed - no matching view
+    Route::get('exams/status', [StudentExamController::class, 'getExamStatus'])->name('exams.status');
     Route::post('exams/{exam}/start', [StudentExamController::class, 'start'])->name('exams.start');
     Route::get('exams/{exam}/take', [StudentExamController::class, 'take'])->name('exams.take');
     Route::post('exams/{exam}/save-answer', [StudentExamController::class, 'saveAnswer'])->name('exams.save-answer');

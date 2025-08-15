@@ -13,6 +13,11 @@ class ExamTaker {
     }
 
     init() {
+        if (!this.examConfig) {
+            console.error('Exam config not found');
+            return;
+        }
+        
         this.calculateTimeRemaining();
         this.startTimer();
         this.startServerSync();
@@ -27,6 +32,26 @@ class ExamTaker {
         const now = new Date();
         const elapsedSeconds = Math.floor((now - startTime) / 1000);
         this.timeRemaining = Math.max(0, (this.examConfig.durationMinutes * 60) - elapsedSeconds);
+    }
+
+    startServerSync() {
+        // Sync with server every 30 seconds to get accurate remaining time
+        this.serverSyncTimer = setInterval(async () => {
+            try {
+                const response = await fetch(this.examConfig.routes.getTime);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.expired) {
+                        this.autoSubmitExam();
+                        return;
+                    }
+                    // Update time remaining from server
+                    this.timeRemaining = data.remaining_seconds;
+                }
+            } catch (error) {
+                console.error('Server sync error:', error);
+            }
+        }, 30000); // Every 30 seconds
     }
 
     startTimer() {
@@ -53,9 +78,11 @@ class ExamTaker {
         const minutes = Math.floor((this.timeRemaining % 3600) / 60);
         const seconds = this.timeRemaining % 60;
         
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
         const timerElement = document.getElementById('timer');
+        
         if (timerElement) {
-            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             timerElement.textContent = timeString;
             
             // Change color based on time remaining
@@ -100,38 +127,78 @@ class ExamTaker {
     }
 
     bindEvents() {
-        // Answer change events
+        console.log('=== BINDING EVENTS ===');
+        
+        // Submit exam button - try multiple selectors
+        let submitBtn = document.getElementById('submitExamBtn');
+        if (!submitBtn) {
+            submitBtn = document.querySelector('[class*="submit"]') || document.querySelector('button[type="submit"]');
+        }
+        
+        console.log('Submit button found:', !!submitBtn);
+        console.log('Submit button element:', submitBtn);
+        
+        if (submitBtn) {
+            // Remove any existing event listeners
+            submitBtn.removeEventListener('click', this.handleSubmitClick);
+            
+            this.handleSubmitClick = () => {
+                console.log('Submit button clicked');
+                this.showSubmitConfirmation();
+            };
+            
+            submitBtn.addEventListener('click', this.handleSubmitClick);
+            console.log('Submit button event listener added');
+        } else {
+            console.error('Submit button not found! Available buttons:');
+            console.error(Array.from(document.querySelectorAll('button')).map(btn => ({
+                id: btn.id,
+                class: btn.className,
+                text: btn.textContent.trim()
+            })));
+        }
+        
+        // Confirm submit button - try multiple selectors
+        let confirmBtn = document.getElementById('confirmSubmit');
+        if (!confirmBtn) {
+            confirmBtn = document.querySelector('[class*="confirm"]') || document.querySelector('button[class*="green"]');
+        }
+        
+        console.log('Confirm button found:', !!confirmBtn);
+        if (confirmBtn) {
+            confirmBtn.removeEventListener('click', this.handleConfirmClick);
+            
+            this.handleConfirmClick = () => {
+                console.log('Confirm submit clicked');
+                this.submitExam();
+            };
+            
+            confirmBtn.addEventListener('click', this.handleConfirmClick);
+            console.log('Confirm button event listener added');
+        }
+        
+        // Cancel submit button  
+        let cancelBtn = document.getElementById('cancelSubmit');
+        if (!cancelBtn) {
+            cancelBtn = document.querySelector('[class*="cancel"]') || document.querySelector('button[class*="gray"]');
+        }
+        
+        console.log('Cancel button found:', !!cancelBtn);
+        if (cancelBtn) {
+            cancelBtn.removeEventListener('click', this.handleCancelClick);
+            
+            this.handleCancelClick = () => {
+                console.log('Cancel submit clicked');
+                this.hideSubmitConfirmation();
+            };
+            
+            cancelBtn.addEventListener('click', this.handleCancelClick);
+            console.log('Cancel button event listener added');
+        }
+        
         this.bindAnswerEvents();
         
-        // Submit button events
-        document.getElementById('submitExamBtn')?.addEventListener('click', () => {
-            this.showSubmitConfirmation();
-        });
-        
-        document.getElementById('finalSubmit')?.addEventListener('click', () => {
-            this.showSubmitConfirmation();
-        });
-        
-        // Submit confirmation modal events
-        document.getElementById('confirmSubmit')?.addEventListener('click', () => {
-            this.submitExam();
-        });
-        
-        document.getElementById('cancelSubmit')?.addEventListener('click', () => {
-            this.hideSubmitConfirmation();
-        });
-        
-        // Question navigation
-        document.querySelectorAll('.question-nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.scrollToQuestion(parseInt(e.target.dataset.questionIndex));
-            });
-        });
-        
-        // Review answers button
-        document.getElementById('reviewAnswers')?.addEventListener('click', () => {
-            this.reviewAnswers();
-        });
+        console.log('=== EVENTS BOUND ===');
     }
 
     bindAnswerEvents() {
@@ -389,52 +456,98 @@ class ExamTaker {
     }
 
     async submitExam() {
-        if (this.isSubmitting) return;
+        console.log('=== SUBMIT EXAM CALLED ===');
+        console.log('Is submitting:', this.isSubmitting);
+        
+        if (this.isSubmitting) {
+            console.log('Already submitting, returning');
+            return;
+        }
         
         this.isSubmitting = true;
+        console.log('Starting submission process...');
+        
         this.hideSubmitConfirmation();
         
         // Clear timers
-        clearInterval(this.timer);
-        clearInterval(this.autoSaveTimer);
+        if (this.timer) clearInterval(this.timer);
+        if (this.autoSaveTimer) clearInterval(this.autoSaveTimer);
+        if (this.serverSyncTimer) clearInterval(this.serverSyncTimer);
         
         // Show submission overlay
         this.showSubmissionOverlay();
         
         try {
+            console.log('Preparing submission data...');
+            const submissionData = {
+                answers: this.answers,
+                attempt_id: this.examConfig.attemptId,
+                time_spent: Math.max(0, this.examConfig.durationMinutes - Math.floor(this.timeRemaining / 60))
+            };
+            
+            console.log('Submission data:', submissionData);
+            console.log('Submit URL:', this.examConfig.routes.submit);
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            console.log('CSRF token found:', !!csrfToken);
+            
+            if (!csrfToken) {
+                throw new Error('CSRF token not found');
+            }
+            
             const response = await fetch(this.examConfig.routes.submit, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    answers: this.answers,
-                    attempt_id: this.examConfig.attemptId,
-                    time_spent: this.examConfig.durationMinutes - this.timeRemaining
-                })
+                body: JSON.stringify(submissionData)
             });
+            
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
             
             if (response.ok) {
                 const result = await response.json();
-                window.location.href = result.redirect_url;
+                console.log('Submission successful:', result);
+                
+                if (result.redirect_url) {
+                    console.log('Redirecting to:', result.redirect_url);
+                    window.location.href = result.redirect_url;
+                } else {
+                    console.log('No redirect URL provided, going to exam index');
+                    window.location.href = '/student/exams';
+                }
             } else {
-                throw new Error('Submission failed');
+                const errorText = await response.text();
+                console.error('Submission failed with status:', response.status);
+                console.error('Error response:', errorText);
+                throw new Error(`Submission failed: ${response.status} - ${errorText}`);
             }
         } catch (error) {
-            console.error('Submission error:', error);
-            showError('Failed to submit exam. Please try again.');
+            console.error('=== SUBMISSION ERROR ===');
+            console.error('Error details:', error);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            
+            // Show user-friendly error
+            this.showError('Failed to submit exam: ' + error.message + '. Please try again.');
+            
             this.isSubmitting = false;
             this.hideSubmissionOverlay();
             this.startTimer();
             this.startAutoSave();
             this.startServerSync();
         }
+        
+        console.log('=== SUBMIT EXAM COMPLETE ===');
     }
 
     async autoSubmitExam() {
         clearInterval(this.timer);
         clearInterval(this.autoSaveTimer);
+        clearInterval(this.serverSyncTimer);
         
         this.showSubmissionOverlay('Time is up! Auto-submitting your exam...');
         
@@ -484,6 +597,46 @@ class ExamTaker {
         }
     }
 
+    showError(message) {
+        console.log('Showing error:', message);
+        
+        // Remove any existing error notifications
+        const existingError = document.getElementById('errorNotification');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Create error notification
+        const notification = document.createElement('div');
+        notification.id = 'errorNotification';
+        notification.className = 'fixed top-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg z-50 max-w-md';
+        notification.innerHTML = `
+            <div class="flex">
+                <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <h4 class="text-red-800 font-medium">Error</h4>
+                    <p class="text-red-700 text-sm mt-1">${message}</p>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-red-400 hover:text-red-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.remove();
+            }
+        }, 10000);
+    }
+
     setupNavigationWarning() {
         // Prevent accidental navigation
         window.addEventListener('beforeunload', (e) => {
@@ -524,30 +677,79 @@ class ExamTaker {
     }
 
     loadExistingAnswers() {
-        // Load any existing answers from previous saves
+        // Load existing answers from server data
+        if (this.examConfig.existingAnswers) {
+            for (const [questionId, answerData] of Object.entries(this.examConfig.existingAnswers)) {
+                // Save to local answers object
+                this.answers[questionId] = {
+                    answer: answerData.answer,
+                    type: answerData.type,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Update UI based on question type
+                const questionType = answerData.type;
+                
+                if (questionType === 'mcq') {
+                    // Select the correct radio button
+                    const radio = document.querySelector(`input[name="question_${questionId}"][value="${answerData.answer}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                } else if (questionType === 'short_answer') {
+                    // Fill textarea
+                    const textarea = document.querySelector(`textarea[data-question-id="${questionId}"]`);
+                    if (textarea) {
+                        textarea.value = answerData.answer;
+                    }
+                } else if (questionType === 'file_upload') {
+                    // Show file upload status
+                    const questionCard = document.querySelector(`[data-question-id="${questionId}"]`);
+                    const uploadedFileDiv = questionCard?.querySelector('.uploaded-file');
+                    const fileNameSpan = uploadedFileDiv?.querySelector('.file-name');
+                    
+                    if (uploadedFileDiv && fileNameSpan) {
+                        fileNameSpan.textContent = answerData.answer || 'Previously uploaded file';
+                        uploadedFileDiv.classList.remove('hidden');
+                    }
+                }
+                
+                // Update answer status
+                this.updateAnswerStatus(questionId, true);
+            }
+        }
+        
+        // Also check current form state for any additional answers
         // Check radio buttons
         document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-            this.saveAnswer(radio.dataset.questionId, radio.value, 'mcq');
+            const questionId = radio.dataset.questionId || radio.name.replace('question_', '');
+            if (questionId && !this.answers[questionId]) {
+                this.saveAnswer(questionId, radio.value, 'mcq');
+            }
         });
         
         // Check textareas
         document.querySelectorAll('textarea[data-question-id]').forEach(textarea => {
-            if (textarea.value.trim()) {
-                this.saveAnswer(textarea.dataset.questionId, textarea.value, 'short_answer');
+            const questionId = textarea.dataset.questionId;
+            if (textarea.value.trim() && questionId && !this.answers[questionId]) {
+                this.saveAnswer(questionId, textarea.value, 'short_answer');
             }
         });
         
         // Check file uploads
         document.querySelectorAll('input[type="file"][data-question-id]').forEach(fileInput => {
-            if (fileInput.files.length > 0) {
-                this.saveAnswer(fileInput.dataset.questionId, 'File uploaded', 'file_upload');
+            const questionId = fileInput.dataset.questionId;
+            if (fileInput.files.length > 0 && questionId && !this.answers[questionId]) {
+                this.saveAnswer(questionId, 'File uploaded', 'file_upload');
             }
         });
         
         this.updateQuestionNavigation();
         
         // Mark as saved if we have existing answers
-        if (Object.keys(this.answers).length > 0) {
+        const answersCount = Object.keys(this.answers).length;
+        
+        if (answersCount > 0) {
             this.updateAutoSaveStatus('saved');
         }
     }
@@ -556,6 +758,28 @@ class ExamTaker {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     if (window.examConfig) {
-        new ExamTaker();
+        try {
+            window.examTaker = new ExamTaker();
+        } catch (error) {
+            console.error('Failed to create ExamTaker:', error);
+        }
+    } else {
+        // Retry after 1 second
+        setTimeout(() => {
+            if (window.examConfig) {
+                try {
+                    window.examTaker = new ExamTaker();
+                } catch (error) {
+                    console.error('Failed to create ExamTaker on retry:', error);
+                }
+            } else {
+                // Show fallback timer
+                const timerEl = document.getElementById('timer');
+                if (timerEl) {
+                    timerEl.textContent = 'Error loading timer';
+                    timerEl.className = 'font-mono text-lg font-bold text-red-600';
+                }
+            }
+        }, 1000);
     }
 });

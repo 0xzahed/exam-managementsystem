@@ -107,7 +107,8 @@ class GoogleDriveService
 
             return [
                 'id' => $driveFile->id,
-                'url' => "https://drive.google.com/file/d/{$driveFile->id}/view"
+                'url' => "https://drive.google.com/file/d/{$driveFile->id}/view",
+                'webViewLink' => "https://drive.google.com/file/d/{$driveFile->id}/view"
             ];
 
         } catch (\Exception $e) {

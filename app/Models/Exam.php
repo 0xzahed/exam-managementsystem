@@ -2,14 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class Exam extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'title',
         'description',
@@ -61,7 +58,7 @@ class Exam extends Model
     {
         return $this->hasMany(ExamAttempt::class);
     }
-    
+
     /**
      * Exam Cohorts (groups of students with specific time windows)
      */
@@ -74,46 +71,114 @@ class Exam extends Model
     public function isActive()
     {
         $now = Carbon::now();
-        return $this->status === 'published' && 
-               $now->gte($this->start_time) && $now->lte($this->end_time);
+        return $this->status === 'published' && $now->gte($this->start_time) && $now->lte($this->end_time);
     }
 
-    public function canStudentTake($studentId)
+    /**
+     * Check if exam is currently available for students to start
+     * This includes scheduling restrictions
+     */
+    public function isAvailableForStudent($studentId)
     {
-        // Check if student has already attempted
-        $attempt = $this->attempts()->where('student_id', $studentId)->first();
-        if ($attempt) {
-            return false;
-        }
-        
-        // Must be published
+        $now = Carbon::now();
+        // Check exam status - must be published
         if ($this->status !== 'published') {
             return false;
         }
-        
-        $now = Carbon::now();
-        // If cohorts defined, check cohort assignment and window
-        if ($this->cohorts()->exists()) {
-            $cohort = $this->getStudentCohort($studentId);
-            if (!$cohort) {
-                return false;
-            }
-            if (!$now->gte($cohort->start_time) || !$now->lte($cohort->end_time)) {
-                return false;
-            }
+        // Get student-specific cohort if exists
+        $studentCohort = $this->getStudentCohort($studentId);
+        if ($studentCohort) {
+            // Use cohort-specific times
+            $startTime = $studentCohort->start_time;
+            $endTime = $studentCohort->end_time;
         } else {
-            // Check if current time is within exam window
-            if (!$now->gte($this->start_time) || !$now->lte($this->end_time)) {
-                return false;
-            }
+            // Use general exam times
+            $startTime = $this->start_time;
+            $endTime = $this->end_time;
         }
-
+        // Check if current time is before start time
+        if ($now->lt($startTime)) {
+            return false; // Not started yet
+        }
+        // Check if current time is after end time
+        if ($now->gt($endTime)) {
+            return false; // Already ended
+        }
         // Check if student is enrolled in the course
         $user = \App\Models\User::find($studentId);
         if (!$user || !$user->enrollments()->where('course_id', $this->course_id)->exists()) {
             return false;
         }
+        return true;
+    }
 
+    /**
+     * Get exam status for a specific student
+     */
+    public function getStatusForStudent($studentId)
+    {
+        $now = Carbon::now();
+        // Check exam status - must be published
+        if ($this->status !== 'published') {
+            return 'draft';
+        }
+        // Get student-specific cohort if exists
+        $studentCohort = $this->getStudentCohort($studentId);
+        if ($studentCohort) {
+            $startTime = $studentCohort->start_time;
+            $endTime = $studentCohort->end_time;
+        } else {
+            $startTime = $this->start_time;
+            $endTime = $this->end_time;
+        }
+        if ($now->lt($startTime)) {
+            return 'not_started';
+        } elseif ($now->gt($endTime)) {
+            return 'ended';
+        } else {
+            return 'available';
+        }
+    }
+
+    /**
+     * Get time until exam starts for a student
+     */
+    public function getTimeUntilStart($studentId)
+    {
+        $now = Carbon::now();
+        $studentCohort = $this->getStudentCohort($studentId);
+        $startTime = $studentCohort ? $studentCohort->start_time : $this->start_time;
+        if ($now->gte($startTime)) {
+            return 0; // Already started or past start time
+        }
+        return $now->diffInSeconds($startTime);
+    }
+
+    /**
+     * Get time until exam ends for a student
+     */
+    public function getTimeUntilEnd($studentId)
+    {
+        $now = Carbon::now();
+        $studentCohort = $this->getStudentCohort($studentId);
+        $endTime = $studentCohort ? $studentCohort->end_time : $this->end_time;
+        if ($now->gte($endTime)) {
+            return 0; // Already ended
+        }
+        return $now->diffInSeconds($endTime);
+    }
+
+    public function canStudentTake($studentId)
+    {
+        // First check if exam is available for the student
+        if (!$this->isAvailableForStudent($studentId)) {
+            return false;
+        }
+        // Check max attempts
+        $attemptCount = $this->attempts()->where('student_id', $studentId)->count();
+        if ($attemptCount >= $this->max_attempts) {
+            return false;
+        }
         return true;
     }
 

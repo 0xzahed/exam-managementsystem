@@ -21,7 +21,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-blue-100 text-sm font-medium">Available Exams</p>
-                            <h3 class="text-2xl font-bold">{{ $exams->count() }}</h3>
+                            <h3 class="text-2xl font-bold stat-available">{{ $exams->count() }}</h3>
                         </div>
                         <div class="bg-blue-400/30 p-3 rounded-lg">
                             <i class="fas fa-clipboard-list text-xl"></i>
@@ -33,7 +33,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-green-100 text-sm font-medium">Completed</p>
-                            <h3 class="text-2xl font-bold">{{ $exams->filter(function($exam) { return $exam->getAttemptForStudent(auth()->user()->id) && $exam->getAttemptForStudent(auth()->user()->id)->is_submitted; })->count() }}</h3>
+                            <h3 class="text-2xl font-bold stat-completed">{{ $exams->filter(function($exam) { return $exam->getAttemptForStudent(auth()->user()->id) && $exam->getAttemptForStudent(auth()->user()->id)->is_submitted; })->count() }}</h3>
                         </div>
                         <div class="bg-green-400/30 p-3 rounded-lg">
                             <i class="fas fa-check-circle text-xl"></i>
@@ -45,7 +45,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-yellow-100 text-sm font-medium">Pending</p>
-                            <h3 class="text-2xl font-bold">{{ $exams->filter(function($exam) { return !$exam->getAttemptForStudent(auth()->user()->id) || !$exam->getAttemptForStudent(auth()->user()->id)->is_submitted; })->count() }}</h3>
+                            <h3 class="text-2xl font-bold stat-pending">{{ $exams->filter(function($exam) { return !$exam->getAttemptForStudent(auth()->user()->id) || !$exam->getAttemptForStudent(auth()->user()->id)->is_submitted; })->count() }}</h3>
                         </div>
                         <div class="bg-yellow-400/30 p-3 rounded-lg">
                             <i class="fas fa-clock text-xl"></i>
@@ -57,7 +57,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-purple-100 text-sm font-medium">Average Score</p>
-                            <h3 class="text-2xl font-bold">
+                            <h3 class="text-2xl font-bold stat-average">
                                 @php
                                 $completedAttempts = collect();
                                 foreach($exams as $exam) {
@@ -106,10 +106,11 @@
                 $isCompleted = $attempt && $attempt->is_submitted;
                 $isPending = !$isCompleted;
                 $isActive = $exam->isActive(); // Check if exam is within time window
-                $canTake = !$isCompleted && $exam->status === 'published' && $isActive;
+                $canTake = $exam->canStudentTake(auth()->user()->id) && !$isCompleted;
                 @endphp
 
                 <div class="exam-card bg-white rounded-xl shadow-sm border border-gray-200"
+                     data-exam-id="{{ $exam->id }}"
                      data-status="{{ $exam->status }}"
                      data-completion="{{ $isCompleted ? 'completed' : 'pending' }}"
                      data-availability="{{ $canTake ? 'available' : 'unavailable' }}">
@@ -123,7 +124,7 @@
                                         <h3 class="text-xl font-semibold text-gray-900 mb-2 truncate">{{ $exam->title }}</h3>
                                         <p class="text-gray-600 mb-3">{{ $exam->description }}</p>
 
-                                        <div class="flex flex-wrap items-center gap-3 mb-3">
+                                        <div class="flex flex-wrap items-center gap-3 mb-3 status-badges">
                                             <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
                                                 {{ $exam->course->title ?? 'General' }}
                                             </span>
@@ -186,7 +187,7 @@
                                 </div>
 
                                 <!-- Time Status -->
-                                <div class="mt-4">
+                                <div class="mt-4 time-status">
                                     @if($isActive)
                                         <div class="bg-green-50 border border-green-200 rounded-lg p-3">
                                             <div class="flex items-center gap-2">
@@ -200,6 +201,7 @@
                                                 <i class="fas fa-clock text-yellow-500"></i>
                                                 <span class="text-yellow-800 font-medium">Exam will start at {{ $exam->start_time->format('M j, Y \a\t g:i A') }}</span>
                                             </div>
+                                            <div class="countdown-timer mt-2 text-lg font-bold text-yellow-900" data-target="{{ $exam->start_time->timestamp }}"></div>
                                         </div>
                                     @elseif($exam->end_time && now()->gt($exam->end_time))
                                         <div class="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -231,9 +233,9 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="flex flex-col gap-3 min-w-[200px]">
+                            <div class="flex flex-col gap-3 min-w-[200px] action-buttons">
                                 @if($canTake)
-                                <form action="{{ route('student.exams.start', $exam) }}" method="POST" class="inline">
+                                <form action="{{ route('student.exams.start', $exam) }}" method="POST" class="inline" onsubmit="alert('Starting exam: {{ $exam->title }}'); return true;">
                                     @csrf
                                     <button type="submit"
                                         class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-center py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2">

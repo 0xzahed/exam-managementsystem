@@ -2,24 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ExamAttempt extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'exam_id',
         'student_id',
         'cohort_id',
         'started_at',
         'submitted_at',
-        'time_spent_minutes',
+        'status',
         'total_score',
         'max_score',
-        'status',
-        'answers'
+        'time_spent_minutes'
     ];
 
     protected $casts = [
@@ -67,13 +63,13 @@ class ExamAttempt extends Model
     {
         return in_array($this->status, ['submitted', 'auto_submitted', 'graded']);
     }
-    
+
     // Accessor for is_submitted (used in views)
     public function getIsSubmittedAttribute()
     {
         return $this->isSubmitted();
     }
-    
+
     // Accessor for score percentage
     public function getScoreAttribute()
     {
@@ -82,13 +78,13 @@ class ExamAttempt extends Model
         }
         return null;
     }
-    
+
     // Accessor for marks_obtained (alias for total_score)
     public function getMarksObtainedAttribute()
     {
         return $this->total_score;
     }
-    
+
     // Accessor for completed_at (use submitted_at)
     public function getCompletedAtAttribute()
     {
@@ -100,11 +96,9 @@ class ExamAttempt extends Model
         if (!$this->isInProgress()) {
             return 0;
         }
-
         $examDuration = $this->exam->duration_minutes;
         $elapsedMinutes = $this->started_at->diffInMinutes(now());
         $remainingMinutes = $examDuration - $elapsedMinutes;
-
         return max(0, $remainingMinutes);
     }
 
@@ -116,11 +110,9 @@ class ExamAttempt extends Model
         if (!$this->isInProgress()) {
             return 0;
         }
-
         $examDurationSeconds = (int) $this->exam->duration_minutes * 60;
         $elapsedSeconds = $this->started_at->diffInSeconds(now());
         $remainingSeconds = $examDurationSeconds - $elapsedSeconds;
-
         return max(0, $remainingSeconds);
     }
 }

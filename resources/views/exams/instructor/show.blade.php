@@ -21,6 +21,11 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-3">
+                        <!-- <a href="{{ route('instructor.exams.attempts', $exam) }}" 
+                           class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                            <i class="fas fa-list-alt mr-2"></i>
+                            View Attempts & Grade ({{ $exam->attempts->count() }})
+                        </a> -->
                         <a href="{{ route('instructor.exams.edit', $exam) }}" 
                            class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
                             <i class="fas fa-edit mr-2"></i>
@@ -32,7 +37,7 @@
 
             <!-- Basic Exam Info -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                     <div class="bg-blue-50 rounded-lg p-4">
                         <div class="text-2xl font-bold text-blue-600">{{ $exam->questions->count() }}</div>
                         <div class="text-sm text-gray-600">Questions</div>
@@ -48,6 +53,15 @@
                     <div class="bg-purple-50 rounded-lg p-4">
                         <div class="text-2xl font-bold text-purple-600">{{ ucfirst($exam->status) }}</div>
                         <div class="text-sm text-gray-600">Status</div>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-4">
+                        <div class="text-2xl font-bold text-orange-600">{{ $exam->attempts->count() }}</div>
+                        <div class="text-sm text-gray-600">
+                            Student Attempts
+                            @if($exam->attempts->count() > 0)
+                                <br><span class="text-xs text-green-600">{{ $exam->attempts->whereIn('status', ['submitted', 'auto_submitted', 'graded'])->count() }} completed</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

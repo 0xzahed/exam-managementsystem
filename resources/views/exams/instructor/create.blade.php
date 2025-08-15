@@ -120,7 +120,7 @@
                         <div>
                             <label for="start_time" class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
                             <input type="datetime-local" id="start_time" name="start_time" 
-                                   value="{{ old('start_time', now()->addHour()->format('Y-m-d\TH:i')) }}" 
+                                   value="{{ old('start_time') }}" 
                                    min="{{ now()->format('Y-m-d\TH:i') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    required>
@@ -133,7 +133,7 @@
                         <div>
                             <label for="end_time" class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
                             <input type="datetime-local" id="end_time" name="end_time" 
-                                   value="{{ old('end_time', now()->addHours(2)->format('Y-m-d\TH:i')) }}" 
+                                   value="{{ old('end_time') }}" 
                                    min="{{ now()->format('Y-m-d\TH:i') }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    required>
@@ -255,54 +255,12 @@
 @endsection
 
 @section('scripts')
-@vite('resources/js/pages/exams/create.js')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('cohortsContainer');
-        document.getElementById('addCohortBtn').addEventListener('click', () => {
-            const index = container.children.length;
-            const cohortHtml = `
-            <div class="border border-gray-200 p-4 rounded-lg space-y-4 relative" data-index="${index}">
-                <button type="button" class="absolute top-2 right-2 text-red-600 removeCohort"><i class="fas fa-times-circle"></i></button>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Cohort Name</label>
-                        <input name="cohorts[${index}][cohort_name]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <input name="cohorts[${index}][description]" class="w-full mt-1 px-3 py-2 border rounded-lg">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                        <input type="datetime-local" name="cohorts[${index}][start_time]" 
-                               min="{{ now()->format('Y-m-d\TH:i') }}"
-                               class="w-full mt-1 px-3 py-2 border rounded-lg" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">End Time</label>
-                        <input type="datetime-local" name="cohorts[${index}][end_time]" 
-                               min="{{ now()->format('Y-m-d\TH:i') }}"
-                               class="w-full mt-1 px-3 py-2 border rounded-lg" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Students</label>
-                        <select multiple name="cohorts[${index}][student_ids][]" class="w-full mt-1 px-3 py-2 border rounded-lg" required>
-                            @foreach($students as $student)
-                                <option value="{{ $student->id }}">{{ $student->first_name }} {{ $student->last_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', cohortHtml);
-            // attach remove listener
-            container.querySelectorAll('.removeCohort').forEach(btn => {
-                btn.onclick = () => btn.closest('[data-index]').remove();
-            });
-        });
-    });
+    // Pass data to JavaScript
+    window.examData = {
+        students: @json($students),
+        isEditMode: false
+    };
 </script>
+@vite('resources/js/pages/exams/create.js')
 @endsection

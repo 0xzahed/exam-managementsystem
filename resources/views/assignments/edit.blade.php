@@ -88,8 +88,8 @@
             </div>
         </div>
 
-        
-        <!-- Dates -->
+
+        <!-- Date -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-calendar-alt text-indigo-600 mr-2"></i>

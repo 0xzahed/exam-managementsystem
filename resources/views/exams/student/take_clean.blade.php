@@ -340,24 +340,33 @@
 <div id="examConfigData" data-config='@json($examConfig)'></div>
 
 <script>
-    // Global functions for exam submission
+    // Define global functions immediately
+    console.log('=== DEFINING GLOBAL FUNCTIONS ===');
+    
     window.handleSubmitClick = function() {
+        console.log('Direct submit click handler called');
         if (window.examTaker && window.examTaker.showSubmitConfirmation) {
+            console.log('Using ExamTaker submit');
             window.examTaker.showSubmitConfirmation();
         } else {
+            console.log('ExamTaker not found, using fallback');
             window.showSubmitConfirmationFallback();
         }
     };
     
     window.handleConfirmSubmit = function() {
+        console.log('Direct confirm submit handler called');
         if (window.examTaker && window.examTaker.submitExam) {
+            console.log('Using ExamTaker submit');
             window.examTaker.submitExam();
         } else {
+            console.log('ExamTaker not found, submitting via form');
             window.submitExamFallback();
         }
     };
     
     window.handleCancelSubmit = function() {
+        console.log('Direct cancel submit handler called');
         if (window.examTaker && window.examTaker.hideSubmitConfirmation) {
             window.examTaker.hideSubmitConfirmation();
         } else {
@@ -365,14 +374,18 @@
             if (modal) {
                 modal.classList.add('hidden');
             }
+            console.log('Modal hidden via fallback');
         }
     };
     
     window.showSubmitConfirmationFallback = function() {
+        console.log('Showing submit confirmation fallback');
         const modal = document.getElementById('submitConfirmation');
         if (modal) {
             modal.classList.remove('hidden');
+            console.log('Modal shown');
         } else {
+            console.log('Modal not found, using browser confirm');
             if (confirm('Are you sure you want to submit your exam?')) {
                 window.handleConfirmSubmit();
             }
@@ -380,25 +393,35 @@
     };
     
     window.submitExamFallback = function() {
+        console.log('Submit exam fallback called');
+        
         if (!window.examConfig) {
+            console.error('No exam config found');
             alert('Error: Cannot submit exam. Please refresh and try again.');
             return;
         }
         
+        // Collect all answers
         const form = document.getElementById('examForm');
         if (!form) {
+            console.error('Exam form not found');
             alert('Error: Cannot find exam form. Please refresh and try again.');
             return;
         }
         
+        // Add CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (!csrfToken) {
+            console.error('CSRF token not found');
             alert('Error: Security token missing. Please refresh and try again.');
             return;
         }
         
+        // Submit form
         const formData = new FormData(form);
         formData.append('_token', csrfToken.getAttribute('content'));
+        
+        console.log('Submitting exam via fallback...');
         
         fetch(window.examConfig.routes.submit, {
             method: 'POST',
@@ -409,6 +432,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Submit response:', data);
             if (data.success) {
                 alert('Exam submitted successfully!');
                 window.location.href = data.redirect || '/student/exams';
@@ -417,13 +441,17 @@
             }
         })
         .catch(error => {
+            console.error('Submit error:', error);
             alert('Error: Failed to submit exam. Please try again.');
         });
     };
     
     // Simple timer fallback
     window.startSimpleTimer = function() {
+        console.log('Starting simple timer fallback');
+        
         if (!window.examConfig || !window.examConfig.durationMinutes) {
+            console.error('No duration found for simple timer');
             const timerEl = document.getElementById('timer');
             if (timerEl) timerEl.textContent = 'Timer Error';
             return;
@@ -433,7 +461,10 @@
         const durationMs = window.examConfig.durationMinutes * 60 * 1000;
         
         const timerEl = document.getElementById('timer');
-        if (!timerEl) return;
+        if (!timerEl) {
+            console.error('Timer element not found');
+            return;
+        }
         
         const updateTimer = () => {
             const now = new Date();
@@ -447,6 +478,8 @@
             const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             timerEl.textContent = timeString;
             
+            console.log('Timer updated:', timeString, 'Remaining ms:', remaining);
+            
             if (remaining <= 0) {
                 clearInterval(window.simpleTimerInterval);
                 alert('Time is up! Please submit your exam.');
@@ -456,29 +489,57 @@
         
         updateTimer();
         window.simpleTimerInterval = setInterval(updateTimer, 1000);
+        console.log('Simple timer started successfully');
     };
 
-    // Load exam configuration
+    // Load exam configuration immediately
     (function() {
         var cfgEl = document.getElementById('examConfigData');
+        console.log('=== EXAM CONFIG LOADING ===');
+        console.log('Config element found:', !!cfgEl);
         
         if (cfgEl) {
             try { 
                 var configData = cfgEl.getAttribute('data-config');
+                console.log('Raw config data length:', configData ? configData.length : 0);
+                
                 window.examConfig = JSON.parse(configData); 
+                console.log('Exam config loaded successfully:', window.examConfig);
+                console.log('Duration minutes:', window.examConfig.durationMinutes);
+                console.log('Start time:', window.examConfig.startTime);
+                console.log('Routes:', window.examConfig.routes);
                 
                 // Start timer immediately
                 window.startSimpleTimer();
                 
             } catch (e) { 
+                console.error('Failed to parse exam config:', e);
+                console.error('Config data that failed:', configData);
                 window.examConfig = null;
+                
+                // Show error in timer
                 const timerEl = document.getElementById('timer');
                 if (timerEl) timerEl.textContent = 'Config Error';
             }
         } else {
+            console.error('Exam config element not found');
             const timerEl = document.getElementById('timer');
             if (timerEl) timerEl.textContent = 'No Config';
         }
+        
+        // Check if timer element exists
+        var timerEl = document.getElementById('timer');
+        console.log('Timer element found:', !!timerEl);
+        if (timerEl) {
+            console.log('Timer element text:', timerEl.textContent);
+        }
+        
+        // Check if submit button exists
+        var submitBtn = document.getElementById('finalSubmit');
+        console.log('Submit button found:', !!submitBtn);
+        
+        console.log('=== CONFIG LOADING COMPLETE ===');
+        console.log('Functions defined:', typeof window.handleSubmitClick, typeof window.handleConfirmSubmit);
     })();
 </script>
 @vite('resources/js/pages/exams/take.js')
