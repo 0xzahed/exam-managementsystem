@@ -78,33 +78,19 @@
         <div class="star absolute top-32 right-1/2 w-1 h-1 bg-white rounded-full"></div>
     </div>
 
-    <div class="container mx-auto px-6 text-center relative z-10">
-        <div class="max-w-4xl mx-auto">
+    <div class="w-full flex flex-col items-center justify-center px-4 text-center relative z-10">
+        <div class="max-w-3xl w-full mx-auto">
             <!-- Error Illustration -->
-            <div class="error-illustration mb-8">
-                <div class="relative">
-                    <!-- Main 404 Text -->
-                    <div class="text-white text-9xl md:text-[12rem] font-bold opacity-20 mb-4">
-                        404
-                    </div>
-
-                    <!-- Floating Elements -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="relative">
-                            <!-- Book Icon -->
-                            <div class="bg-white bg-opacity-20 rounded-full p-8 mb-4 backdrop-blur-sm">
-                                <i class="fas fa-book-open text-6xl text-white"></i>
-                            </div>
-
-                            <!-- Floating Question Mark -->
-                            <div class="absolute -top-4 -right-4 bg-yellow-400 rounded-full w-12 h-12 flex items-center justify-center text-yellow-900 text-xl font-bold">
-                                ?
-                            </div>
-
-                            <!-- Floating Magnifying Glass -->
-                            <div class="absolute -bottom-2 -left-4 bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-blue-900 text-lg">
-                                <i class="fas fa-search"></i>
-                            </div>
+            <div class="error-illustration mb-8 flex flex-col items-center justify-center">
+                <div class="relative w-full flex flex-col items-center justify-center">
+                    <div class="text-white text-8xl md:text-[10rem] font-bold opacity-20 mb-2 select-none">404</div>
+                    <div class="flex items-center justify-center gap-6">
+                        <div class="bg-white bg-opacity-20 rounded-full p-6 backdrop-blur-sm flex items-center justify-center">
+                            <i class="fas fa-book-open text-5xl text-white"></i>
+                        </div>
+                        <div class="bg-yellow-400 rounded-full w-10 h-10 flex items-center justify-center text-yellow-900 text-lg font-bold shadow-lg">?</div>
+                        <div class="bg-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-blue-900 text-base shadow-lg">
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
                 </div>
@@ -112,28 +98,20 @@
 
             <!-- Error Message -->
             <div class="mb-8">
-                <h1 class="text-4xl md:text-6xl font-bold text-white mb-4">
-                    Oops! Page Not Found
-                </h1>
-                <p class="text-xl md:text-2xl text-white text-opacity-90 mb-2">
-                    The page you're looking for seems to have wandered off...
-                </p>
-                <p class="text-lg text-white text-opacity-75">
-                    Don't worry, even the best students sometimes take a wrong turn!
-                </p>
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-3">Oops! Page Not Found</h1>
+                <p class="text-lg md:text-xl text-white text-opacity-90 mb-2">The page you're looking for seems to have wandered off...</p>
+                <p class="text-base text-white text-opacity-75">Don't worry, even the best students sometimes take a wrong turn!</p>
             </div>
 
             <!-- Search Suggestion -->
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 mb-8 max-w-2xl mx-auto">
+            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 mb-8 max-w-xl mx-auto">
                 <h3 class="text-xl font-semibold text-white mb-4">
                     <i class="fas fa-lightbulb mr-2 text-yellow-300"></i>
                     Let's help you find what you need
                 </h3>
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1">
-                        <input type="text" placeholder="Search for courses, assignments, or resources..."
-                            class="w-full px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50 text-gray-900 placeholder-gray-500">
-                    </div>
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <input type="text" placeholder="Search for courses, assignments, or resources..."
+                        class="w-full px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white focus:ring-opacity-50 text-gray-900 placeholder-gray-500">
                     <button class="btn-hover bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold">
                         <i class="fas fa-search mr-2"></i>Search
                     </button>
@@ -141,7 +119,7 @@
             </div>
 
             <!-- Quick Links -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
                 <a href="{{ route('dashboard') }}" class="btn-hover bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-white hover:bg-opacity-20 transition-all duration-300">
                     <i class="fas fa-home text-3xl mb-3 text-blue-300"></i>
                     <h4 class="font-semibold text-lg mb-2">Dashboard</h4>
@@ -162,7 +140,7 @@
             </div>
 
             <!-- Help Section -->
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto">
+            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 max-w-xl mx-auto">
                 <h3 class="text-xl font-semibold text-white mb-4">
                     <i class="fas fa-question-circle mr-2 text-blue-300"></i>
                     Still need help?
@@ -182,7 +160,7 @@
 
             <!-- Fun Error Codes -->
             <div class="mt-8 text-center">
-                <p class="text-white text-opacity-50 text-sm">
+                <p class="text-white text-opacity-50 text-xs">
                     Error Code: PAGE_NOT_FOUND_404 | Time: {{ now()->format('Y-m-d H:i:s') }}
                 </p>
             </div>
